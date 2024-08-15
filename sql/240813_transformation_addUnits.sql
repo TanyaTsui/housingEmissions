@@ -11,14 +11,14 @@ These are the steps:
 
 */ 
 
--- Step 2: Delete existing rows where municipality is 'Delft'
+-- Delete existing rows where municipality is 'Delft'
 DELETE FROM housing_nl
 WHERE 
 	status = 'transformation - adding units'
 	AND municipality = 'Delft'; 
 
 -- Step 3: Insert the result of the query into the table
-INSERT INTO housing_nl
+-- INSERT INTO housing_nl
 WITH bag_vbo_sample AS (
     SELECT * 
     FROM 
