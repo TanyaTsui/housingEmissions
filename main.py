@@ -2,7 +2,7 @@ from data_processing._common.database_manager import DatabaseManager
 from data_processing._common.params_manager import ParamsManager
 from data_processing.bag.xml_importer import XMLImporter
 from data_processing.bag.geom_column_adder import GeomColumnAdder
-from data_processing.ahn.ahn_data_downloader import AHNDataDownloader
+from data_processing._common.index_adder import IndexAdder
 
 from emissions_calculations.embodied_emissions.admin_boundary_adder import AdminBoundaryAdder
 from emissions_calculations.embodied_emissions.renovation_info_adder import RenovationInfoAdder
@@ -33,7 +33,7 @@ class CbsDataImporter():
 
 class AhnDataImporter(): 
     def run(self): 
-        AHNDataDownloader().run()
+        # AHNDataDownloader().run()
         # GeotiffFileChecker().run()
         # GeotiffFileNumberRenamer().run() 
         # AHNDataToRasterTableImporter().run()
@@ -42,8 +42,8 @@ class AhnDataImporter():
 
 class EmbodiedEmissionsPipeline(): 
     def run(self): 
-        AdminBoundaryAdder().run()
-        # RenovationInfoAdder().run() # TODO: add renovation info (pre-2020, post-2020, function change, new units) into housing_nl
+        # AdminBoundaryAdder().run()
+        RenovationInfoAdder().run() # TODO: add renovation info (pre-2020, post-2020, function change, new units) into housing_nl
         # HousingFunctionSqmEstimator().run()
         # EmbodiedEmissionsCalculator().run()
 
