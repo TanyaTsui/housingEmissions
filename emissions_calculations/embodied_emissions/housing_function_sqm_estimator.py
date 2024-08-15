@@ -1,5 +1,5 @@
-from ...data_processing._common.query_runner import QueryRunner
-from ...data_processing._common.query_manager import QueryManager
+from data_processing._common.query_runner import QueryRunner
+from data_processing._common.query_manager import QueryManager
 
 class HousingFunctionSqmEstimator(): 
     def __init__(self): 

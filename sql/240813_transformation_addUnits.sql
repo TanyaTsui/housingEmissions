@@ -11,36 +11,14 @@ These are the steps:
 
 */ 
 
--- Step 1: Create the table if it doesn't exist
-CREATE TABLE IF NOT EXISTS housing_renovation_nl (
-    id_vbo VARCHAR,
-    id_num VARCHAR,
-    id_pand VARCHAR,
-    geometry VARCHAR,
-    function VARCHAR,
-    sqm VARCHAR,
-    status VARCHAR,
-    document_date VARCHAR,
-    document_number VARCHAR,
-    registration_start VARCHAR,
-    registration_end VARCHAR,
-    geom GEOMETRY,
-    geom_28992 GEOMETRY,
-    neighborhood_code VARCHAR,
-    neighborhood VARCHAR,
-    municipality VARCHAR,
-    province VARCHAR,
-    renovation TEXT
-);
-
 -- Step 2: Delete existing rows where municipality is 'Delft'
-DELETE FROM housing_renovation_nl
+DELETE FROM housing_nl
 WHERE 
-	renovation = 'transformation - adding units'
+	status = 'transformation - adding units'
 	AND municipality = 'Delft'; 
 
 -- Step 3: Insert the result of the query into the table
-INSERT INTO housing_renovation_nl
+INSERT INTO housing_nl
 WITH bag_vbo_sample AS (
     SELECT * 
     FROM 
