@@ -1,24 +1,3 @@
--- Step 1: Create table housing_nl if it doesn't exist
-DROP TABLE IF EXISTS housing_nl; 
-CREATE TABLE IF NOT EXISTS housing_nl (
-	function TEXT,
-	sqm BIGINT,
-	id_pand VARCHAR,
-	geometry VARCHAR,
-	build_year VARCHAR,
-	status VARCHAR,
-	document_date VARCHAR,
-	document_number VARCHAR,
-	registration_start VARCHAR,
-	registration_end VARCHAR,
-	geom GEOMETRY,
-	geom_28992 GEOMETRY,
-	neighborhood_code VARCHAR,
-	neighborhood VARCHAR,
-	municipality VARCHAR,
-	province VARCHAR
-);
-
 -- Delete rows where municipality = 'Delft' AND status = 'renovation - pre2020'
 DELETE FROM housing_nl
 WHERE 
@@ -75,17 +54,21 @@ housing_sqm AS (
 housing_sqm_function AS (
 	SELECT 'woonfunctie' AS function, *
 	FROM housing_sqm
+), 
+housing_sqm_function_withinfo AS (
+	SELECT 
+		h.function, h.sqm, 
+		r.id_pand, r.geometry, r.build_year, r.status, 
+		r.document_date, r.document_number, r.registration_start, r.registration_end, 
+		r.geom, r.geom_28992, r.neighborhood_code, r.neighborhood, r.municipality, r.province
+	FROM pand_renovations r
+	LEFT JOIN housing_sqm_function h
+	ON r.id_pand = h.id_pand
 )
+
 INSERT INTO housing_nl (
 	function, sqm, id_pand, geometry, build_year, status, 
 	document_date, document_number, registration_start, registration_end, 
 	geom, geom_28992, neighborhood_code, neighborhood, municipality, province
 )
-SELECT 
-	h.function, h.sqm, 
-	r.id_pand, r.geometry, r.build_year, r.status, 
-	r.document_date, r.document_number, r.registration_start, r.registration_end, 
-	r.geom, r.geom_28992, r.neighborhood_code, r.neighborhood, r.municipality, r.province
-FROM pand_renovations r
-LEFT JOIN housing_sqm_function h
-ON r.id_pand = h.id_pand
+SELECT * FROM housing_sqm_function_withinfo

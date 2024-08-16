@@ -1,24 +1,12 @@
 from data_processing._common.query_runner import QueryRunner
-from data_processing._common.query_manager import QueryManager
-from data_processing._common.index_adder import IndexAdder
+import time
 
 class RenovationInfoAdder(): 
-    def __init__(self): 
-        None
-
     def run(self):
-        query_runner = QueryRunner()
-        query_manager = QueryManager()
-        index_adder = IndexAdder()
-
-        print('adding indexes to bag_pand and bag_vbo tables...')
-        index_adder.add_index('bag_pand', ['id_pand', ['municipality', 'status']])
-        index_adder.add_index('bag_vbo', ['id_vbo', ['municipality', 'status']])
-
-        query_runner.run_query(query_manager.query_create_housing_nl_table())
-        query_runner.run_query_for_each_municipality(query_manager.query_add_pre2020_renovations(), 4, '\nadding pre-2020 renovations to housing_nl table...')
-        query_runner.run_query_for_each_municipality(query_manager.query_add_post2020_renovations(), 4, '\nadding post-2020 renovations to housing_nl table...')
-        # TODO: add transformations from function change to housing_nl, with status as 'transformation - function change'
-        # TODO: add transformations from adding units to housing_nl, with status as 'transformation - new units'
-        # TODO: remove rows from housing_nl where id_pand and registration year are duplicated, 
-        #       keeping the row(s) about transformation 
+        # start time
+        QueryRunner('sql/create_table/housing_nl.sql').run_query('Creating housing_nl table...')
+        QueryRunner('sql/embodied_emissions/renovation/addPre2020Renovation_toHousingNL.sql').run_query_for_each_municipality('Adding pre-2020 renovations to housing_nl...')
+        QueryRunner('sql/embodied_emissions/renovation/addPost2020Renovation_toHousingNL.sql').run_query_for_each_municipality('Adding post-2020 renovations to housing_nl...')
+        QueryRunner('sql/embodied_emissions/renovation/transformation_functionChange.sql').run_query_for_each_municipality('Adding transformations from function change to housing_nl...')
+        QueryRunner('sql/embodied_emissions/renovation/transformation_addUnits.sql').run_query_for_each_municipality('Adding transformations from adding units to housing_nl...')
+        QueryRunner('sql/embodied_emissions/renovation/remove_renovation_duplicates.sql').run_query_for_each_municipality('Removing renovation duplicates from housing_nl...')

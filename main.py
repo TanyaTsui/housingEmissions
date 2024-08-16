@@ -1,3 +1,5 @@
+import time
+
 from data_processing._common.database_manager import DatabaseManager
 from data_processing._common.params_manager import ParamsManager
 from data_processing.bag.xml_importer import XMLImporter
@@ -41,11 +43,17 @@ class AhnDataImporter():
         None
 
 class EmbodiedEmissionsPipeline(): 
+    def __init__(self):
+        self.start_time = time.time()
+        self.end_time = None
+
     def run(self): 
         # AdminBoundaryAdder().run()
-        RenovationInfoAdder().run() # TODO: add renovation info (pre-2020, post-2020, function change, new units) into housing_nl
-        # HousingFunctionSqmEstimator().run()
-        # EmbodiedEmissionsCalculator().run()
+        RenovationInfoAdder().run()
+        HousingFunctionSqmEstimator().run()
+        EmbodiedEmissionsCalculator().run()
+        self.end_time = time.time()
+        print(f'Pipeline took {round((self.end_time - self.start_time)/60, 2)} minutes to run.')
 
 
 class OperationalEmissionsPipeline(): 

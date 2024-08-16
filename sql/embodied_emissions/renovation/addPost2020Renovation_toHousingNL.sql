@@ -41,17 +41,21 @@ housing_sqm AS (
 housing_sqm_function AS (
 	SELECT 'woonfunctie' AS function, *
 	FROM housing_sqm
+), 
+housing_sqm_function_withinfo AS (
+	SELECT 
+		h.function, h.sqm, 
+		r.id_pand, r.geometry, r.build_year, r.status, 
+		r.document_date, r.document_number, r.registration_start, r.registration_end, 
+		r.geom, r.geom_28992, r.neighborhood_code, r.neighborhood, r.municipality, r.province
+	FROM building_renovations r
+	LEFT JOIN housing_sqm_function h
+	ON r.id_pand = h.id_pand
 )
+	
 INSERT INTO housing_nl (
 	function, sqm, id_pand, geometry, build_year, status, 
 	document_date, document_number, registration_start, registration_end, 
 	geom, geom_28992, neighborhood_code, neighborhood, municipality, province
 )
-SELECT 
-	h.function, h.sqm, 
-	r.id_pand, r.geometry, r.build_year, r.status, 
-	r.document_date, r.document_number, r.registration_start, r.registration_end, 
-	r.geom, r.geom_28992, r.neighborhood_code, r.neighborhood, r.municipality, r.province
-FROM building_renovations r
-LEFT JOIN housing_sqm_function h
-ON r.id_pand = h.id_pand
+SELECT * FROM housing_sqm_function_withinfo
