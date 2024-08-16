@@ -1,4 +1,4 @@
-from params_manager import ParamsManager
+from data_processing._common.params_manager import ParamsManager
 import re
 import pyperclip
 
@@ -11,10 +11,10 @@ class QueryTermReplacer():
         self.housing_table_name = self.params_manager.get_table_params('housing_nl')['table_name']
 
     def replacer(self, query): 
-        query = re.sub(r'\bbag_pand\b', '{self.bag_pand_table_name}', query)
-        query = re.sub(r'\bbag_vbo\b', '{self.bag_vbo_table_name}', query)
-        query = re.sub(r'\bahn_elevation\b', '{self.ahn_table_name}', query)
-        query = re.sub(r'\bhousing_nl\b', '{self.housing_table_name}', query)
+        query = re.sub(r'\bbag_pand\b', self.bag_pand_table_name, query)
+        query = re.sub(r'\bbag_vbo\b', self.bag_vbo_table_name, query)
+        query = re.sub(r'\bahn_elevation\b', self.ahn_table_name, query)
+        query = re.sub(r'\bhousing_nl\b', self.housing_table_name, query)
         query = query.replace("'Delft'", '%s')
         return query
     
