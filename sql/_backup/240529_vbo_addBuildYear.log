@@ -1,6 +1,0 @@
-psql:240529_vbo_addBuildYear.sql:8: NOTICE:  column "p_document_date" of relation "bag_vbo" does not exist, skipping
-psql:240529_vbo_addBuildYear.sql:8: NOTICE:  column "p_registration_start" of relation "bag_vbo" does not exist, skipping
-psql:240529_vbo_addBuildYear.sql:8: NOTICE:  column "p_registration_end" of relation "bag_vbo" does not exist, skipping
-ALTER TABLE
-ALTER TABLE
-UPDATE 25078678

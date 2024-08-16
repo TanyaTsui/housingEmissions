@@ -1,7 +1,0 @@
-psql:240517_LMA_addDemolitionAndRenvationInfo_intermediateTables.sql:18: NOTICE:  table "cdwaste_demolitions" does not exist, skipping
-DROP TABLE
-SELECT 319322
-DROP TABLE
-SELECT 319322
-DROP TABLE
-SELECT 319322
