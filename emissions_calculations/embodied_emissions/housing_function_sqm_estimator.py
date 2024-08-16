@@ -1,16 +1,11 @@
 from data_processing._common.query_runner import QueryRunner
-from data_processing._common.query_manager import QueryManager
 
 class HousingFunctionSqmEstimator(): 
     def __init__(self): 
         None
 
     def run(self):
-        query_runner = QueryRunner()
-        query_manager = QueryManager()
-
-        
-        query_runner.run_query_for_each_municipality(query_manager.query_estimate_housing_function(), 2, '\nestimating housing function...')
-        query_runner.run_query_for_each_municipality(query_manager.query_estimate_housing_sqm(), 3, '\nestimating housing sqm...')
-        query_runner.run_query(query_manager.query_add_landuse_column())
-        query_runner.run_query_for_each_municipality(query_manager.query_filter_out_non_residential(), 3, '\nfiltering out non-residential buildings using landuse data...')
+        QueryRunner('sql/embodied_emissions/function_sqm/estimate_housing_function.sql').run_query_for_each_municipality('Estimating housing function...')
+        QueryRunner('sql/embodied_emissions/function_sqm/estimate_housing_sqm.sql').run_query_for_each_municipality('Estimating housing sqm...')
+        QueryRunner('sql/embodied_emissions/function_sqm/add_landuse_column.sql').run_query('Adding landuse column to housing_nl...')
+        QueryRunner('sql/embodied_emissions/function_sqm/filter_out_non_residential.sql').run_query_for_each_municipality('Filtering out non-residential buildings using landuse data...')
