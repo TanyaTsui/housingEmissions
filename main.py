@@ -6,12 +6,16 @@ from data_processing.bag.xml_importer import XMLImporter
 from data_processing.bag.geom_column_adder import GeomColumnAdder
 from data_processing._common.index_adder import IndexAdder
 
+from data_processing.cbs.cbs_data_processor import CBSDataDownloader
+# from data_processing.cbs.cbs_data_combiner import CBSDataCombiner
+# from data_processing.cbs.cba_data_importer import CBADataImporter
+
 from emissions_calculations.embodied_emissions.admin_boundary_adder import AdminBoundaryAdder
 from emissions_calculations.embodied_emissions.renovation_info_adder import RenovationInfoAdder
 from emissions_calculations.embodied_emissions.housing_function_sqm_estimator import HousingFunctionSqmEstimator
 from emissions_calculations.embodied_emissions.embodied_emissions_calculator import EmbodiedEmissionsCalculator
 
-class BagDataImporter(): 
+class BagDataPipeline(): 
     def __init__(self, data_types=['pand', 'vbo']):
         self.params_manager = ParamsManager()  
         self.database_manager = DatabaseManager()
@@ -28,12 +32,14 @@ class BagDataImporter():
                 print(f'Table {table_name} already exists. Skipping import ...')
         GeomColumnAdder().run()
 
-class CbsDataImporter(): 
-    # download cbs data (using API?)
-    # process and insert cbs data into database
-    None
+class CbsDataPipeline(): 
+    def run(self): 
+        CBSDataDownloader(start_year=2012, end_year=2014).run() # download cbs data 
+        # CBSDataCombiner().run() # combine cbs data 2011-2023 into one table
+        # CBADataImporter().run() # import cba data into database
+        None
 
-class AhnDataImporter(): 
+class AhnDataPipeline(): 
     def run(self): 
         # AHNDataDownloader().run()
         # GeotiffFileChecker().run()
@@ -66,9 +72,9 @@ class EmissionsAggregator():
     None
 
 if __name__ == '__main__':
-    # BagDataImporter(data_types=['pand']).run()
-    # CbsDataImporter().run()
-    # AhnDataImporter().run()
-    EmbodiedEmissionsPipeline().run()
+    # BagDataPipeline(data_types=['pand']).run()
+    CbsDataPipeline().run()
+    # AhnDataPipeline().run()
+    # EmbodiedEmissionsPipeline().run()
     # OperationalEmissionsPipeline().run()
     # EmissionsAggregator().run()
