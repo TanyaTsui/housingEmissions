@@ -1,15 +1,12 @@
 from data_processing._common.query_runner import QueryRunner
-from data_processing._common.query_manager import QueryManager
 
 class AdminBoundaryAdder(): 
     def __init__(self): 
         None
 
     def run(self):
-        query_runner = QueryRunner()
-        query_manager = QueryManager()
-        query_runner.run_query(query_manager.query_add_columns_bag_pand())
-        query_runner.run_query_for_each_municipality(query_manager.query_match_bag_to_admin_boundaries(), 2, 'matching bag to admin boundaries...')
-        # query_runner.run_query_for_each_municipality(query_manager.query_add_municipality_ahn(), 1, 'adding municipality and province columns to ahn_elevation...')
-        # query_runner.run_query(query_manager.query_create_landuse_nl_table(), 'creating landuse_nl table...')
-        # query_runner.run_query_for_each_municipality(query_manager.query_add_buurtInfo_to_landuse_nl(), 1, 'adding buurt info to landuse...')
+        QueryRunner('sql/data_processing/bag/add_admin_columns.sql').run_query('Adding admin boundary columns to bag...')
+        QueryRunner('sql/data_processing/bag/match_admin_boundaries_bag.sql').run_query_for_each_municipality('Matching bag to admin boundaries...')
+        QueryRunner('sql/data_processing/ahn/match_admin_boundaries_ahn.sql').run_query_for_each_municipality('Matching ahn to admin boundaries...')
+        QueryRunner('sql/create_table/landuse_nl.sql').run_query('Creating landuse_nl table...')
+        QueryRunner('sql/data_processing/bag/match_admin_boundaries_landuse.sql').run_query_for_each_municipality('Matching landuse_nl to admin boundaries...')
