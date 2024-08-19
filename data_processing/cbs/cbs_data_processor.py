@@ -193,3 +193,7 @@ class CBSDataCombiner():
         QueryRunner('sql/create_table/cbs_map_all.sql').run_query('creating cbs_map_all table...')
         QueryRunner('sql/data_processing/cbs/combine_cbs_maps_pre2018.sql').run_query_for_each_year(start_year=2012, end_year=2017, message='add pre-2018 cbs maps to cbs_maps_all...')
         QueryRunner('sql/data_processing/cbs/combine_cbs_maps_post2018.sql').run_query_for_each_year(start_year=2018, end_year=2021, message='adding post-2018 cbs maps to cbs_maps_all...')
+
+class CBSDataFormatter():
+    def run(self):
+        QueryRunner('sql/data_processing/cbs/format_cbs_maps_all.sql').run_query('Formatting cbs_maps_all...')
