@@ -1,16 +1,16 @@
 DELETE FROM emissions_all 
-WHERE year = 2012
-AND municipality = 'Montfoort';
+WHERE year = %s
+AND municipality = %s;
 
 WITH operational_emissions AS (
 	SELECT * 
 	FROM cbs_map_all 
-	WHERE year = 2012 AND gm_naam = 'Montfoort'
+	WHERE year = %s AND gm_naam = %s
 ), 
 embodied_emissions AS (
 	SELECT * 
 	FROM emissions_embodied_housing_nl
-	WHERE year = 2012 AND municipality = 'Montfoort'
+	WHERE year = %s AND municipality = %s
 ), 
 embodied_emissions_buurt AS (
 	SELECT 

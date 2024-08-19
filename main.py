@@ -43,11 +43,6 @@ class CbsDataPipeline():
 
 class AhnDataPipeline(): 
     def run(self): 
-        # AHNDataDownloader().run()
-        # GeotiffFileChecker().run()
-        # GeotiffFileNumberRenamer().run() 
-        # AHNDataToRasterTableImporter().run()
-        # ElevationRasterMaker().run()
         None
 
 class EmbodiedEmissionsPipeline(): 
@@ -70,7 +65,7 @@ class OperationalEmissionsPipeline():
 class EmissionsAggregator(): 
     def run(self): 
         QueryRunner('sql/create_table/emissions_all.sql').run_query('Creating emissions_all table...')
-        QueryRunner().run_query_to_combine_emissions('Running query to combine emissions...')
+        QueryRunner('sql/combined_emissions/combine_emissions_by_buurt.sql').run_query_to_combine_emissions('Running query to combine emissions...')
     
 if __name__ == '__main__':
     # BagDataPipeline(data_types=['pand']).run()
