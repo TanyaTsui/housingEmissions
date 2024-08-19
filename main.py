@@ -6,7 +6,7 @@ from data_processing.bag.xml_importer import XMLImporter
 from data_processing.bag.geom_column_adder import GeomColumnAdder
 from data_processing._common.index_adder import IndexAdder
 
-from data_processing.cbs.cbs_data_processor import CBSCsvDownloader, CBSShpDownloader, CBSDataImporter, CBSDataCombiner
+from data_processing.cbs.cbs_data_processor import CBSCsvDownloader, CBSShpDownloader, CBSDataImporter, CBSDataCombiner, CBSDataFormatter
 from emissions_calculations.embodied_emissions.embodied_emissions_pipeline import AdminBoundaryAdder, RenovationInfoAdder, HousingFunctionSqmEstimator, EmbodiedEmissionsCalculator
 
 class BagDataPipeline(): 
@@ -36,6 +36,7 @@ class CbsDataPipeline():
         CBSShpDownloader().run()
         CBSDataImporter().run()
         CBSDataCombiner().run()
+        CBSDataFormatter().run()
         self.end_time = time.time()
         print(f'Pipeline took {round((self.end_time - self.start_time)/60, 2)} minutes to run.')
 
@@ -75,6 +76,6 @@ if __name__ == '__main__':
     # BagDataPipeline(data_types=['pand']).run()
     # CbsDataPipeline().run()
     # AhnDataPipeline().run()
-    EmbodiedEmissionsPipeline().run()
-    # OperationalEmissionsPipeline().run()
+    # EmbodiedEmissionsPipeline().run()
+    OperationalEmissionsPipeline().run()
     # EmissionsAggregator().run()
