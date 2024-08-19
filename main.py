@@ -28,11 +28,8 @@ class BagDataPipeline():
         GeomColumnAdder().run()
 
 class CbsDataPipeline(): 
-    def __init__(self): 
-        self.start_time = time.time()
-        self.end_time = None
-
     def run(self): 
+        self.start_time = time.time()
         CBSCsvDownloader().run()
         CBSShpDownloader().run()
         CBSDataImporter().run()
@@ -46,11 +43,8 @@ class AhnDataPipeline():
         None
 
 class EmbodiedEmissionsPipeline(): 
-    def __init__(self):
-        self.start_time = time.time()
-        self.end_time = None
-
     def run(self): 
+        self.start_time = time.time()
         # AdminBoundaryAdder().run()
         RenovationInfoAdder().run()
         HousingFunctionSqmEstimator().run()
