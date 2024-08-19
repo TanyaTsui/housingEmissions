@@ -7,11 +7,7 @@ from data_processing.bag.geom_column_adder import GeomColumnAdder
 from data_processing._common.index_adder import IndexAdder
 
 from data_processing.cbs.cbs_data_processor import CBSCsvDownloader, CBSShpDownloader, CBSDataImporter, CBSDataCombiner
-
-from emissions_calculations.embodied_emissions.admin_boundary_adder import AdminBoundaryAdder
-from emissions_calculations.embodied_emissions.renovation_info_adder import RenovationInfoAdder
-from emissions_calculations.embodied_emissions.housing_function_sqm_estimator import HousingFunctionSqmEstimator
-from emissions_calculations.embodied_emissions.embodied_emissions_calculator import EmbodiedEmissionsCalculator
+from emissions_calculations.embodied_emissions.embodied_emissions_pipeline import AdminBoundaryAdder, RenovationInfoAdder, HousingFunctionSqmEstimator, EmbodiedEmissionsCalculator
 
 class BagDataPipeline(): 
     def __init__(self, data_types=['pand', 'vbo']):
@@ -77,8 +73,8 @@ class EmissionsAggregator():
 
 if __name__ == '__main__':
     # BagDataPipeline(data_types=['pand']).run()
-    CbsDataPipeline().run()
+    # CbsDataPipeline().run()
     # AhnDataPipeline().run()
-    # EmbodiedEmissionsPipeline().run()
+    EmbodiedEmissionsPipeline().run()
     # OperationalEmissionsPipeline().run()
     # EmissionsAggregator().run()
