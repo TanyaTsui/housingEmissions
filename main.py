@@ -63,19 +63,19 @@ class EmbodiedEmissionsPipeline():
         self.end_time = time.time()
         print(f'Pipeline took {round((self.end_time - self.start_time)/60, 2)} minutes to run.')
 
-
 class OperationalEmissionsPipeline(): 
     def run(self):
         QueryRunner('sql/operational_emissions/calculate_operational_emissions.sql').run_query('Calculating operational emissions...')
 
 class EmissionsAggregator(): 
-    # aggregate embodied and operational emissions by buurt 
-    None
-
+    def run(self): 
+        QueryRunner('sql/create_table/emissions_all.sql').run_query('Creating emissions_all table...')
+        QueryRunner().run_query_to_combine_emissions('Running query to combine emissions...')
+    
 if __name__ == '__main__':
     # BagDataPipeline(data_types=['pand']).run()
     # CbsDataPipeline().run()
     # AhnDataPipeline().run()
     # EmbodiedEmissionsPipeline().run()
-    OperationalEmissionsPipeline().run()
-    # EmissionsAggregator().run()
+    # OperationalEmissionsPipeline().run()
+    EmissionsAggregator().run()
