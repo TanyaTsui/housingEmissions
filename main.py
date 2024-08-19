@@ -1,5 +1,6 @@
 import time
 
+from data_processing._common.query_runner import QueryRunner
 from data_processing._common.database_manager import DatabaseManager
 from data_processing._common.params_manager import ParamsManager
 from data_processing.bag.xml_importer import XMLImporter
@@ -64,9 +65,8 @@ class EmbodiedEmissionsPipeline():
 
 
 class OperationalEmissionsPipeline(): 
-    # process cbs data in database for operational emissions
-    # calculate operational emissions  
-    None
+    def run(self):
+        QueryRunner('sql/operational_emissions/calculate_operational_emissions.sql').run_query('Calculating operational emissions...')
 
 class EmissionsAggregator(): 
     # aggregate embodied and operational emissions by buurt 
