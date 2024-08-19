@@ -50,3 +50,14 @@ class QueryRunner():
                 print(f"Error processing {municipality}: {e}")
                 self.conn.rollback()
         print('\nDone!\n')
+
+    def run_query_for_each_year(self, start_year, end_year, message=''):
+        if message != '': 
+            print(message)
+        for year in range(start_year, end_year+1):
+            output = f"\rProcessing year: {year}                         "
+            sys.stdout.write(output)
+            sys.stdout.flush()
+            self.cursor.execute(self.query, (year,) * self.n_placeholders)
+            self.conn.commit()
+        print('\nDone!\n')

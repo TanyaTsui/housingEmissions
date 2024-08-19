@@ -6,9 +6,7 @@ from data_processing.bag.xml_importer import XMLImporter
 from data_processing.bag.geom_column_adder import GeomColumnAdder
 from data_processing._common.index_adder import IndexAdder
 
-from data_processing.cbs.cbs_data_processor import CBSDataDownloader
-# from data_processing.cbs.cbs_data_combiner import CBSDataCombiner
-# from data_processing.cbs.cba_data_importer import CBADataImporter
+from data_processing.cbs.cbs_data_processor import CBSCsvDownloader, CBSShpDownloader, CBSDataImporter, CBSDataCombiner
 
 from emissions_calculations.embodied_emissions.admin_boundary_adder import AdminBoundaryAdder
 from emissions_calculations.embodied_emissions.renovation_info_adder import RenovationInfoAdder
@@ -33,11 +31,17 @@ class BagDataPipeline():
         GeomColumnAdder().run()
 
 class CbsDataPipeline(): 
+    def __init__(self): 
+        self.start_time = time.time()
+        self.end_time = None
+
     def run(self): 
-        CBSDataDownloader(start_year=2012, end_year=2014).run() # download cbs data 
-        # CBSDataCombiner().run() # combine cbs data 2011-2023 into one table
-        # CBADataImporter().run() # import cba data into database
-        None
+        CBSCsvDownloader().run()
+        CBSShpDownloader().run()
+        CBSDataImporter().run()
+        CBSDataCombiner().run()
+        self.end_time = time.time()
+        print(f'Pipeline took {round((self.end_time - self.start_time)/60, 2)} minutes to run.')
 
 class AhnDataPipeline(): 
     def run(self): 
