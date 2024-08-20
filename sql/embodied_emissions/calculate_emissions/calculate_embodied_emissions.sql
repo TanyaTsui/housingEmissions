@@ -1,7 +1,9 @@
 INSERT INTO emissions_embodied_housing_nl (
     year, province, municipality, neighborhood, neighborhood_code, 
-    status, emissions_embodied_tons, sqm
+    status, emissions_embodied_kg, sqm
 )
+
+-- TODO: change units from tons to kg
 
 WITH housing_nl AS (
     SELECT * 
@@ -11,11 +13,14 @@ WITH housing_nl AS (
 emissions AS (
     SELECT 
         CASE 
-            WHEN status = 'Bouw gestart' THEN (sqm * 316 / 1000.0)::NUMERIC
-            WHEN status = 'Verbouwing pand' THEN (sqm * 126 / 1000.0)::NUMERIC
-            WHEN status = 'Pand gesloopt' THEN (sqm * 77 / 1000.0)::NUMERIC
+            WHEN status = 'Bouw gestart' THEN (sqm * 316)::NUMERIC
+            WHEN status = 'renovation - post2020' THEN (sqm * 126)::NUMERIC
+            WHEN status = 'renovation - pre2020' THEN (sqm * 126)::NUMERIC
+            WHEN status = 'transformation - adding units' THEN (sqm * 126)::NUMERIC
+            WHEN status = 'transformation - function change' THEN (sqm * 126)::NUMERIC
+            WHEN status = 'Pand gesloopt' THEN (sqm * 77)::NUMERIC
             ELSE NULL 
-        END AS emissions_embodied_tons, 
+        END AS emissions_embodied_kg, 
         LEFT(registration_start, 4)::INTEGER AS year, 
         * 
     FROM housing_nl 
@@ -23,7 +28,7 @@ emissions AS (
 emissions_grouped AS (
     SELECT 
         year, province, municipality, neighborhood, neighborhood_code, status, 
-        ROUND(SUM(emissions_embodied_tons), 3) AS emissions_embodied_tons, 
+        ROUND(SUM(emissions_embodied_kg), 3) AS emissions_embodied_kg, 
         SUM(sqm) AS sqm
     FROM emissions
     GROUP BY year, province, municipality, neighborhood, neighborhood_code, status
