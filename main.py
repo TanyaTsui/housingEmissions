@@ -76,6 +76,6 @@ if __name__ == '__main__':
     # BagDataPipeline(data_types=['pand']).run()
     # CbsDataPipeline().run()
     # AhnDataPipeline().run()
-    # EmbodiedEmissionsPipeline().run()
-    OperationalEmissionsPipeline().run()
+    EmbodiedEmissionsPipeline().run()
+    # OperationalEmissionsPipeline().run()
     # EmissionsAggregator().run()
