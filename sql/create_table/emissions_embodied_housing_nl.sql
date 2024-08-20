@@ -4,5 +4,5 @@ CREATE TABLE emissions_embodied_housing_nl (
     province VARCHAR, municipality VARCHAR, 
     neighborhood VARCHAR, neighborhood_code VARCHAR, 
     status VARCHAR, 
-    emissions_embodied_tons NUMERIC, sqm NUMERIC 
+    emissions_embodied_kg NUMERIC, sqm NUMERIC 
 ); 
