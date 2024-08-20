@@ -38,7 +38,7 @@ class QueryRunner():
         if message != '': 
             print(message)
         municipalities = self.db_manager.get_municipalities_list()
-        municipalities = municipalities[:3] # get rid of this line, just for testing first 3 municipalities
+        # municipalities = municipalities[:3] # get rid of this line, just for testing first 3 municipalities
         for i, municipality in enumerate(municipalities):
             try:
                 output = f"\rProcessing municipality ({i+1}/{len(municipalities)}): {municipality}                         "
@@ -61,3 +61,16 @@ class QueryRunner():
             self.cursor.execute(self.query, (year,) * self.n_placeholders)
             self.conn.commit()
         print('\nDone!\n')
+
+    def run_query_to_combine_emissions(self, message=''):
+        if message != '': 
+            print(message) 
+        municipalities = self.db_manager.get_municipalities_list()
+        # municipalities = ['Amsterdam', "'s-Gravenhage"] # testing municipalitites 
+        for i, municipality in enumerate(municipalities): 
+            output = f"\rCombining emissions for ({i+1}/{len(municipalities)}): {municipality}                         "
+            sys.stdout.write(output)
+            sys.stdout.flush()
+            for year in range(2012, 2022): 
+                self.cursor.execute(self.query, (year, municipality, year, municipality, year, municipality))
+                self.conn.commit()
