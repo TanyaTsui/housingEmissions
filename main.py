@@ -28,11 +28,8 @@ class BagDataPipeline():
         GeomColumnAdder().run()
 
 class CbsDataPipeline(): 
-    def __init__(self): 
-        self.start_time = time.time()
-        self.end_time = None
-
     def run(self): 
+        self.start_time = time.time()
         CBSCsvDownloader().run()
         CBSShpDownloader().run()
         CBSDataImporter().run()
@@ -43,19 +40,11 @@ class CbsDataPipeline():
 
 class AhnDataPipeline(): 
     def run(self): 
-        # AHNDataDownloader().run()
-        # GeotiffFileChecker().run()
-        # GeotiffFileNumberRenamer().run() 
-        # AHNDataToRasterTableImporter().run()
-        # ElevationRasterMaker().run()
         None
 
 class EmbodiedEmissionsPipeline(): 
-    def __init__(self):
-        self.start_time = time.time()
-        self.end_time = None
-
     def run(self): 
+        self.start_time = time.time()
         # AdminBoundaryAdder().run()
         RenovationInfoAdder().run()
         HousingFunctionSqmEstimator().run()
@@ -63,15 +52,15 @@ class EmbodiedEmissionsPipeline():
         self.end_time = time.time()
         print(f'Pipeline took {round((self.end_time - self.start_time)/60, 2)} minutes to run.')
 
-
 class OperationalEmissionsPipeline(): 
     def run(self):
         QueryRunner('sql/operational_emissions/calculate_operational_emissions.sql').run_query('Calculating operational emissions...')
 
 class EmissionsAggregator(): 
-    # aggregate embodied and operational emissions by buurt 
-    None
-
+    def run(self): 
+        QueryRunner('sql/create_table/emissions_all.sql').run_query('Creating emissions_all table...')
+        QueryRunner('sql/combined_emissions/combine_emissions_by_buurt.sql').run_query_to_combine_emissions('Running query to combine emissions...')
+    
 if __name__ == '__main__':
     # BagDataPipeline(data_types=['pand']).run()
     # CbsDataPipeline().run()
