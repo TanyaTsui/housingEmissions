@@ -1,5 +1,7 @@
 import sys
 import psycopg2
+import geopandas as gpd
+import pandas as pd
 from pathlib import Path
 from data_processing._common.database_manager import DatabaseManager
 from data_processing._common.query_term_replacer import QueryTermReplacer
@@ -9,6 +11,7 @@ class QueryRunner():
         self.db_manager = DatabaseManager()
         self.conn = self.db_manager.connect()
         self.cursor = self.conn.cursor()
+        self.engine = self.db_manager.get_sqlalchemy_engine()
         self.query, self.n_placeholders = self.get_query_info(file_path)
 
     def get_query_info(self, file_path):
@@ -33,6 +36,14 @@ class QueryRunner():
         self.cursor.execute(self.query)
         self.conn.commit()
         print('Done!\n')
+
+    def get_dataframe_from_query(self): 
+        df = pd.read_sql(self.query, self.engine)
+        return df
+    
+    def get_geodataframe_from_query(self, geom_col='geom'):
+        gdf = gpd.read_postgis(self.query, self.engine, geom_col=geom_col)
+        return gdf
 
     def run_query_for_one_municipality(self, municipality, message=''): 
         if message != '': 

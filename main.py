@@ -46,7 +46,7 @@ class EmbodiedEmissionsPipeline():
     def run(self): 
         self.start_time = time.time()
         # NlBuurtenMaker().run() 
-        AdminBoundaryAdder().run() # run at your own peril - takes an hour
+        # AdminBoundaryAdder().run() # run at your own peril - takes an hour
         RenovationInfoAdder().run()
         HousingFunctionSqmEstimator().run()
         EmbodiedEmissionsCalculator().run()
@@ -66,6 +66,7 @@ if __name__ == '__main__':
     # BagDataPipeline(data_types=['pand']).run()
     # CbsDataPipeline().run()
     # AhnDataPipeline().run()
-    EmbodiedEmissionsPipeline().run()
+    # EmbodiedEmissionsPipeline().run()
     # OperationalEmissionsPipeline().run()
     # EmissionsAggregator().run()
+    None
