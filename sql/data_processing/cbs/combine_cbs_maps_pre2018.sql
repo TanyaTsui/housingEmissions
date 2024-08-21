@@ -9,5 +9,4 @@ SELECT
     %s AS year, "BU_CODE", "BU_NAAM", "GM_CODE", "GM_NAAM", 
     "AANT_INW", "AANTAL_HH", "WOZ", "G_GAS_TOT", "P_STADVERW", "G_ELEK_TOT", 
     geometry, ST_Transform(geometry, 4326) AS geom_4326
-FROM cbs_map_%s
-WHERE "OAD" > 0;
+FROM cbs_map_%s;

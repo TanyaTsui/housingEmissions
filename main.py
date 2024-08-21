@@ -8,7 +8,7 @@ from data_processing.bag.geom_column_adder import GeomColumnAdder
 from data_processing._common.index_adder import IndexAdder
 
 from data_processing.cbs.cbs_data_processor import CBSCsvDownloader, CBSShpDownloader, CBSDataImporter, CBSDataCombiner, CBSDataFormatter
-from emissions_calculations.embodied_emissions.embodied_emissions_pipeline import AdminBoundaryAdder, RenovationInfoAdder, HousingFunctionSqmEstimator, EmbodiedEmissionsCalculator
+from emissions_calculations.embodied_emissions.embodied_emissions_pipeline import NlBuurtenMaker, AdminBoundaryAdder, RenovationInfoAdder, HousingFunctionSqmEstimator, EmbodiedEmissionsCalculator
 
 class BagDataPipeline(): 
     def __init__(self, data_types=['pand', 'vbo']):
@@ -45,7 +45,8 @@ class AhnDataPipeline():
 class EmbodiedEmissionsPipeline(): 
     def run(self): 
         self.start_time = time.time()
-        # AdminBoundaryAdder().run()
+        # NlBuurtenMaker().run() 
+        AdminBoundaryAdder().run() # run at your own peril - takes an hour
         RenovationInfoAdder().run()
         HousingFunctionSqmEstimator().run()
         EmbodiedEmissionsCalculator().run()

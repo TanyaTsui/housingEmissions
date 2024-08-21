@@ -1,3 +1,8 @@
+DELETE FROM housing_nl
+WHERE 
+	municipality = %s 
+	AND status IN ('Bouw gestart', 'Pand gesloopt');
+
 INSERT INTO housing_nl (
     function, sqm, id_pand, geometry, build_year, status, 
     document_date, document_number, registration_start, registration_end, 
@@ -87,7 +92,11 @@ housing_combined AS (
 housing_final AS (
     SELECT 
         u.function AS function, u.sqm AS sqm, 
-        b.*
+        b.id_pand, b.geometry, b.build_year, b.status, 
+        b.document_date, b.document_number, 
+        b.registration_start, b.registration_end, 
+        b.geom, b.geom_28992, b.neighborhood_code, b.neighborhood, 
+        b.municipality, b.province
     FROM buildings b 
     JOIN housing_combined u ON b.id_pand = u.id_pand 
 )
