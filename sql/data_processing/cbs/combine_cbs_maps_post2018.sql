@@ -6,7 +6,6 @@ WITH cbs_stats_year AS (
 ), 
 cbs_map_year AS (
 	SELECT * FROM cbs_map_%s
-	WHERE "OAD" > 0
 )
 	
 INSERT INTO cbs_map_all (

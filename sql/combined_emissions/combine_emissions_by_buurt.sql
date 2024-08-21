@@ -15,7 +15,7 @@ embodied_emissions AS (
 embodied_emissions_buurt AS (
 	SELECT 
 		neighborhood_code, 
-		SUM(emissions_embodied_tons) AS embodied_emissions_tons, 
+		SUM(emissions_embodied_kg) AS embodied_emissions_kg, 
 		SUM(sqm) AS sqm
 	FROM embodied_emissions
 	GROUP BY neighborhood_code 
@@ -28,8 +28,8 @@ INSERT INTO emissions_all (
 ) 
 SELECT 
 	o.year, o.bu_code, o.bu_naam, o.gm_naam, o.geometry, o.geom_4326, 
-	o.emissions_kg_total, e.embodied_emissions_tons, 
-	o.emissions_kg_total + e.embodied_emissions_tons AS emissions_total, 
+	o.emissions_kg_total, e.embodied_emissions_kg, 
+	o.emissions_kg_total + e.embodied_emissions_kg AS emissions_total, 
 	o.aantal_hh, o.aant_inw, e.sqm, o.woz
 FROM operational_emissions o 
 FULL JOIN embodied_emissions_buurt e  
