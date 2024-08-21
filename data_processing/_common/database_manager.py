@@ -13,7 +13,7 @@ class DatabaseManager:
     
     def get_sqlalchemy_engine(self):
         db_params = self.params_manager.get_database_params()
-        connection_string = f"postgresql://{db_params['dbname']}:{db_params['password']}@{db_params['host']}:{db_params['port']}/{db_params['dbname']}"
+        connection_string = f"postgresql://{db_params['user']}:{db_params['password']}@{db_params['host']}:{db_params['port']}/{db_params['dbname']}"
         engine = create_engine(connection_string)
         return engine
     
