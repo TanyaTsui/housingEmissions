@@ -98,6 +98,7 @@ housing_final AS (
         b.geom, b.geom_28992, b.neighborhood_code, b.neighborhood, 
         b.municipality, b.province
     FROM buildings b 
-    JOIN housing_combined u ON b.id_pand = u.id_pand 
+    JOIN housing_combined u 
+    ON b.id_pand = u.id_pand 
 )
 SELECT * FROM housing_final; 
