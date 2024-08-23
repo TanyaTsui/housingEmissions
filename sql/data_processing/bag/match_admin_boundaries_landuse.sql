@@ -9,13 +9,14 @@ WITH municipality AS (
 ), 
 landuse_municipality AS (
     SELECT 
-        l.gml_id, l.description AS landuse, l.geom_28992, 
+        l.gml_id, l.description AS landuse, 
+        l.geometry AS geom_28992, 
         m.naam AS municipality, m.ligt_in_provincie_naam AS province
-    FROM existinglanduseobject l 
+    FROM landuse_nl_raw l 
     JOIN municipality m 
     ON 
-        l.geom_28992 && m.geom 
-        AND ST_Intersects(l.geom_28992, m.geom)
+        l.geometry && m.geom 
+        AND ST_Intersects(l.geometry, m.geom)
 )
 
 SELECT * FROM landuse_municipality
