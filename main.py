@@ -11,6 +11,8 @@ from data_processing.landuse.landuse_gml_importer import LanduseGmlImporter
 from data_processing.cbs.cbs_data_processor import CBSCsvDownloader, CBSShpDownloader, CBSDataImporter, CBSDataCombiner, CBSDataFormatter
 from emissions_calculations.embodied_emissions.embodied_emissions_pipeline import NlBuurtenMaker, AdminBoundaryAdder, RenovationInfoAdder, HousingFunctionSqmEstimator, EmbodiedEmissionsCalculator
 
+from data_processing.bag.housing_snapshot_maker import HousingSnapshotMaker
+
 class BagDataPipeline(): 
     def __init__(self, data_types=['pand', 'vbo']):
         self.params_manager = ParamsManager()  
@@ -71,8 +73,12 @@ if __name__ == '__main__':
     # BagDataPipeline(data_types=['pand']).run()
     # CbsDataPipeline().run()
     # AhnDataPipeline().run()
-    LanduseDataPipeline().run()
+    # LanduseDataPipeline().run()
+    
     # EmbodiedEmissionsPipeline().run()
     # OperationalEmissionsPipeline().run()
     # EmissionsAggregator().run()
+
+    HousingSnapshotMaker(2012).run()
+    HousingSnapshotMaker(2021).run()
     None
