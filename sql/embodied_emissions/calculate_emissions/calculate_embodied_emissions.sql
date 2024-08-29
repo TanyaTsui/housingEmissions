@@ -3,8 +3,6 @@ INSERT INTO emissions_embodied_housing_nl (
     status, emissions_embodied_kg, sqm
 )
 
--- TODO: change units from tons to kg
-
 WITH housing_nl AS (
     SELECT * 
     FROM housing_nl

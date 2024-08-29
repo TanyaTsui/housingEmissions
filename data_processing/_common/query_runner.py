@@ -89,9 +89,9 @@ class QueryRunner():
         municipalities = self.db_manager.get_municipalities_list()
         # municipalities = ['Amsterdam'] # , "'s-Gravenhage"] # testing municipalitites 
         for i, municipality in enumerate(municipalities): 
-            output = f"\rCombining emissions for ({i+1}/{len(municipalities)}): {municipality}                         "
-            sys.stdout.write(output)
-            sys.stdout.flush()
-            for year in range(2012, 2022): 
+            for year in range(2012, 2025): 
+                output = f"\rCombining emissions for ({i+1}/{len(municipalities)}): {municipality} for year {year}                         "
+                sys.stdout.write(output)
+                sys.stdout.flush()
                 self.cursor.execute(self.query, (year, municipality, year, municipality, year, municipality))
                 self.conn.commit()

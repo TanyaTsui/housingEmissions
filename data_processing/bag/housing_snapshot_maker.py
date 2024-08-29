@@ -3,7 +3,7 @@ from data_processing._common.database_manager import DatabaseManager
 
 class HousingSnapshotMaker(): 
     def __init__(self, year):
-        print(f'Creating snapshot of housing for {year} ...')
+        print(f'\nCreating snapshot of housing for {year} ...')
         self.year = year 
         self.query = self.make_query()
 
@@ -169,7 +169,3 @@ class HousingSnapshotMaker():
             )
             SELECT * FROM housing_withbaginfo 
         '''
-    
-if __name__ == '__main__':
-    HousingSnapshotMaker(2012).run()
-    HousingSnapshotMaker(2021).run()

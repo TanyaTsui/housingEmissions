@@ -1,3 +1,5 @@
+CREATE TABLE reporting_emissions_population_sqm AS 
+
 -- get population change
 WITH population_2021 AS (
 	SELECT gm_naam AS municipality, SUM(aant_inw) AS population_2021
@@ -67,5 +69,6 @@ emissions_populationchange_sqmchange AS (
 	LEFT JOIN sqm_change s 
 	ON e.municipality = s.municipality
 )
-SELECT * FROM emissions_populationchange_sqmchange LIMIT 10
+	
+SELECT * FROM emissions_populationchange_sqmchange
 

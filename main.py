@@ -77,8 +77,8 @@ if __name__ == '__main__':
     
     # EmbodiedEmissionsPipeline().run()
     # OperationalEmissionsPipeline().run()
-    # EmissionsAggregator().run()
+    EmissionsAggregator().run()
 
-    HousingSnapshotMaker(2012).run()
-    HousingSnapshotMaker(2021).run()
+    # HousingSnapshotMaker(2012).run()
+    # HousingSnapshotMaker(2021).run()
     None
