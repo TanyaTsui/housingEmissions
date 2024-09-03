@@ -5,7 +5,7 @@ AND municipality = %s;
 WITH operational_emissions AS (
 	SELECT * 
 	FROM cbs_map_all 
-	WHERE year = %s AND gm_naam = %s
+	WHERE year = %s AND municipality = %s
 ), 
 embodied_emissions AS (
 	SELECT * 
@@ -22,16 +22,18 @@ embodied_emissions_buurt AS (
 )
 
 INSERT INTO emissions_all (
-    year, neighborhood_code, neighborhood_name, municipality, geometry, geom_4326, 
+    year, neighborhood_code, neighborhood_name, municipality, 
+	geometry, geom_4326, 
     emissions_operational, emissions_embodied, emissions_total, 
     n_households, n_residents, sqm_total, av_value
 ) 
 SELECT 
-	o.year, o.bu_code, o.bu_naam, o.gm_naam, o.geometry, o.geom_4326, 
+	o.year, o.neighborhood_code, o.neighborhood, o.municipality, 
+	ST_Transform(o.neighborhood_geom, 28992) AS geometry, o.neighborhood_geom AS geom_4326, 
 	COALESCE(o.emissions_kg_total, 0) AS emissions_operational, 
     COALESCE(e.embodied_emissions_kg, 0) AS emissions_embodied, 
     COALESCE(o.emissions_kg_total, 0) + COALESCE(e.embodied_emissions_kg, 0) AS emissions_total, 
-	o.aantal_hh, o.aant_inw, e.sqm, o.woz
+	o.n_households, o.population, e.sqm, o.woz
 FROM operational_emissions o 
 FULL JOIN embodied_emissions_buurt e  
-ON o.bu_code = e.neighborhood_code 
+ON o.neighborhood_code = e.neighborhood_code 

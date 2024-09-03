@@ -13,7 +13,7 @@ class cbsMapAllTester():
         self.columns_of_interest_old = ['AANT_INW', 'AANTAL_HH', 'WOZ', 'G_GAS_TOT', 'G_ELEK_TOT']
         self.columns_of_interest_new = ['population', 'n_households', 'woz', 'gas_m3', 'electricity_kwh']
 
-    def check_mismatching_neighborhood_codes(self): 
+    def check_neighborhood_codes(self): 
         print('Checking mismatching neighborhood codes between cbs_map_all and nl_buurten')
         query = ''' 
         SELECT * 
@@ -41,7 +41,49 @@ class cbsMapAllTester():
                 else:
                     print(f'{col_new} is incorrect. difference: {sum_old - sum_new}')
 
+class EmissionsEmbodiedHousingNlTester(): 
+    def __init__(self): 
+        self.engine = create_engine(f'postgresql://postgres:Tunacompany5694!@localhost:5432/urbanmining')
+
+    def check_neighborhood_codes(self): 
+        print('Checking mismatching neighborhood codes between emissions_embodied_housing_nl and nl_buurten')
+        query = ''' 
+        SELECT * 
+        FROM nl_buurten n 
+        FULL JOIN emissions_embodied_housing_nl c
+        ON c.neighborhood_code = n.neighborhood_code 
+        WHERE c.neighborhood_code IS NULL OR n.neighborhood_code IS NULL
+        '''
+        df = pd.read_sql(query, self.engine)
+        if df.shape[0] == 0: 
+            print('No mismatching neighborhood codes between cbs_map_all and nl_buurten\n')
+        else: 
+            print('Mismatching neighborhood codes between cbs_map_all and nl_buurten')
+            print(df, '\n')
+
+    def check_sqm(self): 
+        for year in range(2012, 2022): 
+            print(f'\nChecking sum of emissions_embodied_housing_nl for {year}')
+            housing_nl_query = f''' 
+            SELECT SUM(sqm) FROM housing_nl 
+            WHERE LEFT(registration_start, 4)::INTEGER = {year}
+            '''
+            sum_housing_nl = pd.read_sql(housing_nl_query, self.engine).iloc[0, 0]
+            sum_emissions_embodied = pd.read_sql(f'SELECT SUM(sqm) FROM emissions_embodied_housing_nl WHERE year = {year}', self.engine).iloc[0, 0]
+            if sum_housing_nl == sum_emissions_embodied:
+                print(f'sqm is correct')
+            else:
+                print(f'sqm is incorrect. difference: {sum_housing_nl - sum_emissions_embodied}')
+
+
+
 if __name__ == '__main__': 
-    tester = cbsMapAllTester()
-    tester.check_mismatching_neighborhood_codes()
-    tester.check_sum_of_cbs_map()
+    # # test cbs_map_all
+    # tester = cbsMapAllTester()
+    # tester.check_neighborhood_codes()
+    # tester.check_sum_of_cbs_map()
+
+    # test emissions_embodied_housing_nl
+    tester = EmissionsEmbodiedHousingNlTester()
+    tester.check_neighborhood_codes()
+    tester.check_sqm()
