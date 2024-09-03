@@ -16,6 +16,7 @@ class QueryTermReplacer():
         query = re.sub(r'\bahn_elevation\b', self.ahn_table_name, query)
         query = re.sub(r'\bhousing_nl\b', self.housing_table_name, query)
         query = query.replace("'Delft'", '%s')
+        query = query.replace("'Amsterdam'", '%s')
         return query
     
     def counter(self, query): 

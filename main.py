@@ -8,7 +8,7 @@ from data_processing.bag.geom_column_adder import GeomColumnAdder
 from data_processing._common.index_adder import IndexAdder
 
 from data_processing.landuse.landuse_gml_importer import LanduseGmlImporter
-from data_processing.cbs.cbs_data_processor import CBSCsvDownloader, CBSShpDownloader, CBSDataImporter, CBSDataCombiner, CBSDataFormatter
+from data_processing.cbs.cbs_data_processor import CBSCsvDownloader, CBSShpDownloader, CBSDataImporter, CBSDataCombiner
 from emissions_calculations.embodied_emissions.embodied_emissions_pipeline import NlBuurtenMaker, AdminBoundaryAdder, RenovationInfoAdder, HousingFunctionSqmEstimator, EmbodiedEmissionsCalculator
 
 from data_processing.bag.housing_snapshot_maker import HousingSnapshotMaker
@@ -33,11 +33,9 @@ class BagDataPipeline():
 class CbsDataPipeline(): 
     def run(self): 
         self.start_time = time.time()
-        CBSCsvDownloader().run()
-        CBSShpDownloader().run()
-        CBSDataImporter().run()
+        # CBSShpDownloader().run()
+        # CBSDataImporter().run()
         CBSDataCombiner().run()
-        CBSDataFormatter().run()
         self.end_time = time.time()
         print(f'Pipeline took {round((self.end_time - self.start_time)/60, 2)} minutes to run.')
 
@@ -53,7 +51,7 @@ class EmbodiedEmissionsPipeline():
     def run(self): 
         self.start_time = time.time()
         # NlBuurtenMaker().run() 
-        # AdminBoundaryAdder().run() # run at your own peril - takes an hour
+        AdminBoundaryAdder().run() # run at your own peril - takes an hour
         RenovationInfoAdder().run()
         HousingFunctionSqmEstimator().run()
         EmbodiedEmissionsCalculator().run()
@@ -62,7 +60,11 @@ class EmbodiedEmissionsPipeline():
 
 class OperationalEmissionsPipeline(): 
     def run(self):
+        start_time = time.time()
+        QueryRunner('sql/operational_emissions/add_buurten_to_cbs.sql').run_query('Adding buurten to cbs_map_all_unified_buurt...')
         QueryRunner('sql/operational_emissions/calculate_operational_emissions.sql').run_query('Calculating operational emissions...')
+        end_time = time.time()
+        print(f'Pipeline took {round((end_time - start_time)/60, 2)} minutes to run.')
 
 class EmissionsAggregator(): 
     def run(self): 
@@ -71,13 +73,13 @@ class EmissionsAggregator():
     
 if __name__ == '__main__':
     # BagDataPipeline(data_types=['pand']).run()
-    # CbsDataPipeline().run()
+    CbsDataPipeline().run()
     # AhnDataPipeline().run()
     # LanduseDataPipeline().run()
     
     # EmbodiedEmissionsPipeline().run()
     # OperationalEmissionsPipeline().run()
-    EmissionsAggregator().run()
+    # EmissionsAggregator().run()
 
     # HousingSnapshotMaker(2012).run()
     # HousingSnapshotMaker(2021).run()

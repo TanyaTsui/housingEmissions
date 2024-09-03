@@ -13,6 +13,9 @@ from data_processing._common.params_manager import ParamsManager
 from data_processing._common.query_runner import QueryRunner
 
 class CBSCsvDownloader(): 
+    # not really needed - data is already in shp files
+    # see CBSShpDownloader
+
     def __init__(self):
         self.columns_of_interest = [
             'gwb_code_10', 'regio', 'gm_naam', 'recs', 
@@ -116,8 +119,6 @@ class CBSShpDownloader():
     def run(self): 
         # self.rename_zip_files()
         self.save_buurt_data()
-        # combine buurt data with processed CBS data
-        # save combined data
 
     def rename_zip_files(self): 
         directory = 'data/raw/cbs/wijkEnBuurtKaart'
@@ -170,8 +171,8 @@ class CBSDataImporter():
         self.engine = create_engine(f'postgresql://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}')
 
     def run(self): 
-        self.import_csv_to_db()
-        # self.import_shps_to_db()
+        # self.import_csv_to_db() # not really needed - data is already in shp files
+        self.import_shps_to_db()
     
     def import_csv_to_db(self):
         csv_file_path = 'data/processed/cbs/kwb-all.csv'
@@ -191,9 +192,4 @@ class CBSDataImporter():
 class CBSDataCombiner(): 
     def run(self): 
         QueryRunner('sql/create_table/cbs_map_all.sql').run_query('creating cbs_map_all table...')
-        QueryRunner('sql/data_processing/cbs/combine_cbs_maps_pre2018.sql').run_query_for_each_year(start_year=2012, end_year=2017, message='add pre-2018 cbs maps to cbs_maps_all...')
-        QueryRunner('sql/data_processing/cbs/combine_cbs_maps_post2018.sql').run_query_for_each_year(start_year=2018, end_year=2021, message='adding post-2018 cbs maps to cbs_maps_all...')
-
-class CBSDataFormatter():
-    def run(self):
-        QueryRunner('sql/data_processing/cbs/format_cbs_maps_all.sql').run_query('Formatting cbs_maps_all...')
+        QueryRunner('sql/data_processing/cbs/make_cbs_map_all.sql').run_query_for_each_year(first_year=2012, final_year=2021, message='making cbs_map_all...')

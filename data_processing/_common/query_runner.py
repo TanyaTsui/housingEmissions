@@ -72,10 +72,10 @@ class QueryRunner():
                 self.conn.rollback()
         print('\nDone!\n')
 
-    def run_query_for_each_year(self, start_year, end_year, message=''):
+    def run_query_for_each_year(self, first_year, final_year, message=''):
         if message != '': 
             print(message)
-        for year in range(start_year, end_year+1):
+        for year in range(first_year, final_year+1):
             output = f"\rProcessing year: {year}                         "
             sys.stdout.write(output)
             sys.stdout.flush()

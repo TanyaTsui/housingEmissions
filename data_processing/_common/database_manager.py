@@ -53,7 +53,7 @@ class DatabaseManager:
     def get_municipalities_list(self): 
         conn = self.connect()
         cursor = conn.cursor()
-        cursor.execute("SELECT DISTINCT naam FROM nl_gemeentegebied")
+        cursor.execute('''SELECT DISTINCT municipality FROM nl_buurten''')
         municipalities_list = cursor.fetchall()
         return [municipality[0] for municipality in municipalities_list]
     
