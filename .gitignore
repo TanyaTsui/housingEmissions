@@ -2,4 +2,4 @@
 /data/
 /documents/
 __pycache__/
-/sql/_backup/
+/sql/_backup/.DS_Store
