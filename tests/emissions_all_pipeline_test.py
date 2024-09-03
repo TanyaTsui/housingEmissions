@@ -75,6 +75,46 @@ class EmissionsEmbodiedHousingNlTester():
             else:
                 print(f'sqm is incorrect. difference: {sum_housing_nl - sum_emissions_embodied}')
 
+class emissionsAllTester(): 
+    def __init__(self): 
+        self.engine = create_engine(f'postgresql://postgres:Tunacompany5694!@localhost:5432/urbanmining')
+
+    def check_neighborhood_codes(self):
+        print('Checking mismatching neighborhood codes between emissions_all and nl_buurten')
+        query = ''' 
+        SELECT * 
+        FROM nl_buurten n 
+        FULL JOIN emissions_all e 
+        ON e.neighborhood_code = n.neighborhood_code 
+        WHERE e.neighborhood_code IS NULL OR n.neighborhood_code IS NULL
+        '''
+        df = pd.read_sql(query, self.engine)
+        if df.shape[0] == 0: 
+            print('No mismatching neighborhood codes between emissions_all and nl_buurten\n')
+        else: 
+            print('Mismatching neighborhood codes between emissions_all and nl_buurten')
+            print(df, '\n')
+
+    def check_operational_emissions(self):
+        for year in range(2012, 2022): 
+            print(f'\nChecking sum of operational emissions for {year}')
+            sum_cbs_map_all = pd.read_sql(f'SELECT SUM(emissions_kg_total) FROM cbs_map_all WHERE year = {year}', self.engine).iloc[0, 0]
+            sum_emissions_all = pd.read_sql(f'SELECT SUM(emissions_operational) FROM emissions_all WHERE year = {year}', self.engine).iloc[0, 0]
+            if sum_cbs_map_all == sum_emissions_all:
+                print(f'operational emissions is correct')
+            else:
+                print(f'operational emissions is incorrect. difference: {sum_cbs_map_all - sum_emissions_all}')
+
+    def check_embodied_emissions(self): 
+        for year in range(2012, 2022): 
+            print(f'\nChecking sum of embodied emissions for {year}')
+            sum_embodied = pd.read_sql(f'SELECT SUM(emissions_embodied_kg) FROM emissions_embodied_housing_nl WHERE year = {year}', self.engine).iloc[0, 0]
+            sum_emissions_all = pd.read_sql(f'SELECT SUM(emissions_operational) FROM emissions_all WHERE year = {year}', self.engine).iloc[0, 0]
+            if sum_embodied == sum_emissions_all:
+                print(f'embodied emissions is correct')
+            else:
+                print(f'embodied emissions is incorrect. difference: {sum_embodied - sum_emissions_all}')
+                print(f'sum_embodied: {sum_embodied}, sum_emissions_all: {sum_emissions_all}')
 
 
 if __name__ == '__main__': 
@@ -83,7 +123,13 @@ if __name__ == '__main__':
     # tester.check_neighborhood_codes()
     # tester.check_sum_of_cbs_map()
 
-    # test emissions_embodied_housing_nl
-    tester = EmissionsEmbodiedHousingNlTester()
-    tester.check_neighborhood_codes()
-    tester.check_sqm()
+    # # test emissions_embodied_housing_nl
+    # tester = EmissionsEmbodiedHousingNlTester()
+    # tester.check_neighborhood_codes()
+    # tester.check_sqm()
+
+    # test emissions_all
+    tester = emissionsAllTester()
+    # tester.check_neighborhood_codes()
+    # tester.check_operational_emissions()
+    tester.check_embodied_emissions()
