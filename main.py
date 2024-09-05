@@ -65,7 +65,7 @@ class OperationalEmissionsPipeline():
 class EmissionsAggregator(): 
     def run(self): 
         QueryRunner('sql/create_table/emissions_all.sql').run_query('Creating emissions_all table...')
-        QueryRunner('sql/combined_emissions/combine_emissions_by_buurt.sql').run_query_to_combine_emissions('Running query to combine emissions...')
+        QueryRunner('sql/combined_emissions/combine_emissions_by_buurt.sql').run_query_for_each_municipality('Running query to combine emissions...')
     
 if __name__ == '__main__':
     # BagDataPipeline(data_types=['pand']).run()

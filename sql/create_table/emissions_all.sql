@@ -12,5 +12,5 @@ CREATE TABLE emissions_all (
     n_households INT,
     n_residents INT,
     sqm_total NUMERIC,
-    av_value NUMERIC
+    woz NUMERIC
 );

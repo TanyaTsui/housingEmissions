@@ -1,12 +1,15 @@
-WITH operational_emissions AS (
+WITH nl_buurten AS (
+	SELECT * FROM nl_buurten WHERE municipality = 'Amsterdam'
+), 
+operational_emissions AS (
 	SELECT * 
 	FROM cbs_map_all 
-	WHERE year = 2012 AND municipality = 'Amsterdam'
+	WHERE municipality = 'Amsterdam'
 ), 
 embodied_emissions AS (
 	SELECT * 
 	FROM emissions_embodied_housing_nl
-	WHERE year = 2012 AND municipality = 'Amsterdam'
+	WHERE municipality = 'Amsterdam' 
 ), 
 embodied_emissions_buurt AS (
 	SELECT 
@@ -16,22 +19,28 @@ embodied_emissions_buurt AS (
 	FROM embodied_emissions
 	GROUP BY neighborhood_code 
 ), 
-emissions_all AS (
+buurten_embodied AS (
 	SELECT 
-		o.year, o.neighborhood_code, o.neighborhood, o.municipality, 
-		ST_Transform(o.neighborhood_geom, 28992) AS geometry, o.neighborhood_geom AS geom_4326, 
-		COALESCE(o.emissions_kg_total, 0) AS emissions_operational, 
-	    COALESCE(e.embodied_emissions_kg, 0) AS emissions_embodied, 
-	    COALESCE(o.emissions_kg_total, 0) + COALESCE(e.embodied_emissions_kg, 0) AS emissions_total, 
-		o.n_households, o.population, e.sqm, o.woz
-	FROM operational_emissions o 
-	FULL JOIN embodied_emissions_buurt e  
-	ON o.neighborhood_code = e.neighborhood_code 
+		ST_Transform(n.neighborhood_geom, 4326), n.*, e.sqm, 
+		CASE 
+			WHEN e.embodied_emissions_kg IS NULL THEN 0 
+			ELSE e.embodied_emissions_kg 
+		END AS emissions_embodied_kg
+	FROM nl_buurten n 
+	LEFT JOIN embodied_emissions_buurt e 
+	ON n.neighborhood_code = e.neighborhood_code 
+), 
+buurten_embodied_operational AS (
+	SELECT 
+		b.*, 
+		o.emissions_kg_total AS emissions_operational_kg, 
+		b.emissions_embodied_kg + o.emissions_kg_total AS emissions_total_kg, 
+		o.electricity_kwh, o.woz, o.gas_m3, 
+		o.year, o.population, o.n_households, 
+		o.emissions_kg_electricity, o.emissions_kg_gas, 
+		o.emissions_kg_pp
+	FROM buurten_embodied b
+	LEFT JOIN operational_emissions o 
+	ON b.neighborhood_code = o.neighborhood_code 
 )
 
-SELECT * FROM emissions_all
-
--- TEST: do all rows in operational_emissions have matching neighborhood_code in nl_buurten? 
--- TEST: do all rows in embodied_emissions_buurt have matching neighborhood_code in nl_buurten? 
--- I'm a bit suspicious of the FULL JOIN in emissions_all. 
--- Would it be better to join each emissions table to nl_buurten? 
