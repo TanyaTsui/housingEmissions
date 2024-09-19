@@ -34,8 +34,8 @@ class CbsDataPipeline():
     def run(self): 
         self.start_time = time.time()
         # CBSShpDownloader().run()
-        # CBSDataImporter().run()
-        CBSDataCombiner().run()
+        CBSDataImporter().run()
+        # CBSDataCombiner().run()
         self.end_time = time.time()
         print(f'Pipeline took {round((self.end_time - self.start_time)/60, 2)} minutes to run.')
 
@@ -68,15 +68,18 @@ class EmissionsAggregator():
         QueryRunner('sql/combined_emissions/combine_emissions_by_buurt.sql').run_query_for_each_municipality('Running query to combine emissions...')
     
 if __name__ == '__main__':
+    # # data preprocessing
     # BagDataPipeline(data_types=['pand']).run()
     # CbsDataPipeline().run()
     # AhnDataPipeline().run()
     # LanduseDataPipeline().run()
     
+    # # existing emissions calculations 
     # EmbodiedEmissionsPipeline().run()
     # OperationalEmissionsPipeline().run()
-    EmissionsAggregator().run()
+    # EmissionsAggregator().run()
 
     # HousingSnapshotMaker(2012).run()
     # HousingSnapshotMaker(2021).run()
+    # QueryRunner('sql/reporting/emissions_vs_populationChange_vs_sqmChange.sql').run_query('Running emissions vs population change vs sqm change query...')
     None

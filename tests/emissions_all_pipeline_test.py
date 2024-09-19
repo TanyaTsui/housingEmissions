@@ -139,6 +139,6 @@ if __name__ == '__main__':
 
     # test emissions_all
     tester = emissionsAllTester()
-    # tester.check_neighborhood_codes()
-    # tester.check_operational_emissions()
+    tester.check_neighborhood_codes()
+    tester.check_operational_emissions()
     tester.check_embodied_emissions()

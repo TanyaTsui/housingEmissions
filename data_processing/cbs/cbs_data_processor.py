@@ -172,7 +172,8 @@ class CBSDataImporter():
 
     def run(self): 
         # self.import_csv_to_db() # not really needed - data is already in shp files
-        self.import_shps_to_db()
+        # self.import_shps_to_db()
+        self.import_gemeenten_to_db('data/raw/nl/nl_adminBoundaries/gemeenten_2022_v2.shp', 'nl_gemeenten')
     
     def import_csv_to_db(self):
         csv_file_path = 'data/processed/cbs/kwb-all.csv'
@@ -188,6 +189,11 @@ class CBSDataImporter():
             gdf = gpd.read_file(shp_file_path)
             gdf.to_postgis(table_name, self.engine, if_exists='replace')
             print(f'Imported {shp_file_path} to {table_name} in database.')
+
+    def import_gemeenten_to_db(self, shp_file_path, table_name): 
+        gdf = gpd.read_file(shp_file_path)
+        gdf.to_postgis(table_name, self.engine, if_exists='replace')
+        print(f'Imported {shp_file_path} to {table_name} in database.')
 
 class CBSDataCombiner(): 
     def run(self): 
