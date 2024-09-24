@@ -6,7 +6,7 @@ INSERT INTO emissions_embodied_housing_nl (
 WITH housing_nl AS (
     SELECT * 
     FROM housing_nl
-    WHERE municipality = %s
+    WHERE municipality = 'Amsterdam'
 ), 
 emissions AS (
     SELECT 
@@ -34,3 +34,4 @@ emissions_grouped AS (
 
 SELECT * 
 FROM emissions_grouped
+ORDER BY neighborhood_code, year
