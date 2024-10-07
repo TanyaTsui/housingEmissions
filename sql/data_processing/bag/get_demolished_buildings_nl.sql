@@ -1,3 +1,6 @@
+DELETE FROM demolished_buildings_nl
+WHERE municipality = 'Amsterdam';
+
 INSERT INTO demolished_buildings_nl(
 	id_pand, geometry, build_year, status, document_date, document_number, 
     registration_start, registration_end, geom, geom_28992, province, 
@@ -105,7 +108,7 @@ building_nfloors AS (
 ), 
 buildings_sqm_ahn AS (
     SELECT
-		(n_floors * footprint_sqm)::INTEGER AS sqm, *
+		(n_floors * footprint_sqm)::BIGINT AS sqm, *
     FROM building_nfloors
 ), 
 buildings_sqm_guesses AS (

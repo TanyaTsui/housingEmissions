@@ -2,15 +2,19 @@ import sys
 from data_processing._common.database_manager import DatabaseManager
 
 class HousingSnapshotMaker(): 
-    def __init__(self, year):
-        print(f'\nCreating snapshot of housing for {year} ...')
-        self.year = year 
-        self.query = self.make_query()
+    def __init__(self, start_year, end_year):
+        print(f'\nCreating snapshot of housing for years {start_year} to {end_year} ...')
+        self.start_year = start_year 
+        self.end_year = end_year
 
     def run(self): 
         self.connect_to_db() 
         self.make_snapshot_table()
-        self.fill_snapshot_table()
+        for year in range(self.start_year, self.end_year + 1):
+            print(f'\nCreating snapshot of housing in use for {year} ...') 
+            self.year = year
+            self.query = self.make_query()
+            self.fill_snapshot_table()
 
     def connect_to_db(self):
         self.conn = DatabaseManager().connect()
@@ -19,8 +23,19 @@ class HousingSnapshotMaker():
 
     def make_snapshot_table(self):
         query = f'''
-            DROP TABLE IF EXISTS housing_nl_{self.year};
-            CREATE TABLE housing_nl_{self.year} (LIKE housing_nl INCLUDING ALL); 
+            DROP TABLE IF EXISTS housing_inuse_{self.start_year}_{self.end_year};
+            CREATE TABLE housing_inuse_{self.start_year}_{self.end_year} (
+                year INTEGER,
+                sqm BIGINT,
+                id_pand VARCHAR,
+                status VARCHAR,
+                geom GEOMETRY,
+                geom_28992 GEOMETRY,
+                province VARCHAR,
+                neighborhood_code VARCHAR,
+                neighborhood VARCHAR,
+                municipality VARCHAR
+            ); 
             '''
         self.conn.rollback()
         self.cursor.execute(query)
@@ -29,6 +44,7 @@ class HousingSnapshotMaker():
     def fill_snapshot_table(self):
         n_placeholders = self.query.count('%s')
         municipalities = DatabaseManager().get_municipalities_list()
+        # municipalities = municipalities[:3] + ['Amsterdam'] # for testing
         for i, municipality in enumerate(municipalities): 
             query = self.query
             output = f"\rProcessing municipality ({i+1}/{len(municipalities)}): {municipality}                         "
@@ -36,7 +52,6 @@ class HousingSnapshotMaker():
             sys.stdout.flush()
             self.cursor.execute(query, (municipality,) * n_placeholders)
             self.conn.commit()
-
     
     def make_query(self):
         return f''' 
@@ -47,10 +62,11 @@ class HousingSnapshotMaker():
                 WHERE municipality = %s
             ), 
             bag_pand_municipality AS (
-                SELECT * 
+                SELECT DISTINCT ON (id_pand) * 
                 FROM bag_pand
                 WHERE 
                     municipality = %s
+                    AND status = 'Pand in gebruik' 
                     AND LEFT(registration_start, 4)::INTEGER <= {self.year}
                     AND (registration_end IS NULL OR LEFT(registration_end, 4)::INTEGER > {self.year})
             ), 
@@ -75,11 +91,11 @@ class HousingSnapshotMaker():
 
             -- get buildings where function and sqm are unknown 	
             buildings_unknown AS (
-                SELECT * 
-                FROM bag_pand_municipality 
-                WHERE 
-                    status = 'Pand in gebruik' 
-                    AND id_pand NOT IN (SELECT id_pand FROM housing_buildings)
+                SELECT b.* 
+                FROM bag_pand_municipality b 
+                LEFT JOIN housing_buildings hb ON b.id_pand = hb.id_pand 
+                WHERE b.status = 'Pand in gebruik'
+                    AND hb.id_pand IS NULL
             ), 
 
             -- guess function of unknown buildings using landuse data 
@@ -147,25 +163,24 @@ class HousingSnapshotMaker():
             ), 
 
             -- combine unknown buildings with housing_buildings
-            housing AS (
+            housing AS ( -- housing in use for this year
                 SELECT id_pand, function, sqm FROM building_sqm_formatted
                 UNION
                 SELECT id_pand, function, sqm FROM housing_buildings 
             ), 
             housing_withbaginfo AS (
                 SELECT 
-                    h.function, h.sqm, 
-                    b.*
+                    {self.year} AS year, h.sqm, 
+                    b.id_pand, b.status, b.geom, b.geom_28992, b.province, b.neighborhood_code, b.neighborhood, b.municipality
                 FROM housing h 
                 LEFT JOIN bag_pand_municipality b 
                 ON h.id_pand = b.id_pand
             )
 
-            -- insert final selection into housing_nl_{self.year}
-            INSERT INTO housing_nl_{self.year} (
-                function, sqm, id_pand, geometry, build_year, status, 
-                document_date, document_number, registration_start, registration_end, 
-                geom, geom_28992, province, neighborhood_code, neighborhood, municipality
+            -- insert final selection into housing_inuse_{self.start_year}_{self.end_year}
+            INSERT INTO housing_inuse_{self.start_year}_{self.end_year} (
+                year, sqm, id_pand, status, geom, geom_28992, 
+                province, neighborhood_code, neighborhood, municipality
             )
-            SELECT * FROM housing_withbaginfo 
+            SELECT * FROM housing_withbaginfo WHERE id_pand IS NOT NULL
         '''

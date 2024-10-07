@@ -58,7 +58,8 @@ class QueryRunner():
         if message != '': 
             print(message)
         municipalities = self.db_manager.get_municipalities_list()
-        # municipalities = municipalities[:3] + ['Amsterdam'] # get rid of this line, just for testing first 3 municipalities
+        # municipalities = ['Het Hogeland', 'Zaanstad', 'Stadskanaal']
+        # municipalities = ['Amsterdam'] # get rid of this line, just for testing first 3 municipalities
         for i, municipality in enumerate(municipalities):
             try:
                 output = f"\rProcessing municipality ({i+1}/{len(municipalities)}): {municipality}                         "

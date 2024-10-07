@@ -67,6 +67,15 @@ class EmissionsAggregator():
         QueryRunner('sql/create_table/emissions_all.sql').run_query('Creating emissions_all table...')
         QueryRunner('sql/combined_emissions/combine_emissions_by_buurt.sql').run_query_for_each_municipality('Running query to combine emissions...')
     
+class S1Pipeline(): 
+    def run(self): 
+        QueryRunner('sql/create_table/demolished_buildings_nl.sql').run_query('Creating demolished_buildings_nl table...')  
+        QueryRunner('sql/data_processing/bag/get_demolished_buildings_nl.sql').run_query_for_each_municipality('Getting demolished buildings...')
+        QueryRunner('sql/create_table/housing_nl_s1.sql').run_query('Creating housing_nl_s1 table...')
+        QueryRunner('sql/s1_circular_economy/renovation_suitability.sql').run_query_for_each_municipality('Calculating renovation suitability...')
+        QueryRunner('sql/create_table/emissions_embodied_housing_nl_s1.sql').run_query('Creating emissions_embodied_housing_nl_s1 table...')
+        QueryRunner('sql/embodied_emissions/calculate_emissions/calculate_embodied_emissions_s1.sql').run_query_for_each_municipality('Calculating embodied emissions for strategy one...')
+
 if __name__ == '__main__':
     # # DATA PRE-PROCESSING
     # BagDataPipeline(data_types=['pand']).run()
@@ -81,14 +90,9 @@ if __name__ == '__main__':
     # TODO: save results to csv
 
     # # STRATEGY ONE - CIRCULAR ECONOMY (minimize materials) 
-    QueryRunner('sql/create_table/demolished_buildings_nl.sql').run_query('Creating demolished_buildings_nl table...')  
-    QueryRunner('sql/data_processing/bag/get_demolished_buildings_nl.sql').run_query_for_each_municipality('Getting demolished buildings...')
-    QueryRunner('sql/create_table/housing_nl_s1.sql').run_query('Creating housing_nl_s1 table...')
-    QueryRunner('sql/s1_circular_economy/renovation_suitability.sql').run_query_for_each_municipality('Calculating renovation suitability...')
-    QueryRunner('sql/create_table/emissions_embodied_housing_nl_s1.sql').run_query('Creating emissions_embodied_housing_nl_s1 table...')
-    QueryRunner('sql/embodied_emissions/calculate_emissions/calculate_embodied_emissions_s1.sql').run_query_for_each_municipality('Calculating embodied emissions for strategy one...')
-
-    # HousingSnapshotMaker(2012).run()
-    # HousingSnapshotMaker(2021).run()
-    # QueryRunner('sql/reporting/emissions_vs_populationChange_vs_sqmChange.sql').run_query('Running emissions vs population change vs sqm change query...')
-    None
+    # S1Pipeline().run()
+    
+    start_time = time.time()
+    HousingSnapshotMaker(2012, 2022).run()
+    end_time = time.time()
+    print(f'\nIt took {round((end_time - start_time)/60, 2)} minutes to create a snapshot of in-use housing in 2012.')

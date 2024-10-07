@@ -18,7 +18,24 @@ constructions AS (
 		AND status = 'Bouw gestart'
 ), 
 
--- get replacement constructions (constructions that did intersect with demolitions)
+-- get new constructions (constructions that didn't replace demolitions)
+constructions_new_raw AS (
+	SELECT 
+		c.*
+	FROM constructions c 
+	LEFT JOIN demolitions d 
+	ON c.neighborhood_code = d.neighborhood_code
+		AND ST_Intersects(c.geom_28992, d.geom_28992)
+	WHERE d.neighborhood_code IS NULL
+), 
+constructions_new AS (
+	SELECT id_pand, SUM(sqm) AS c_sqm, 
+		ST_SetSRID(ST_GeomFromText(MIN(ST_AsText(geom))), 4326) AS geom
+	FROM constructions_new_raw
+	GROUP BY id_pand 
+), 
+
+-- get replacement constructions (constructions that did replace demolitions)
 constructions_replacement_raw AS (
 	SELECT 
 		c.sqm AS c_sqm, d.sqm AS d_sqm, 
@@ -45,10 +62,16 @@ constructions_replacement AS (
 ), 
 
 -- make housing_nl_s1 with new statuses 
-renovations AS (
-	SELECT id_pand, 'renovation - s1' AS status
+housing_s1_construction AS (
+	SELECT 
+		id_pand, 
+		CASE 
+	        WHEN replaced_sqm != 0 AND new_sqm <= replaced_sqm AND c_sqm <= d_sqm THEN 'renovation - s1'
+	        ELSE 'Bouw gestart'
+	    END AS status
 	FROM constructions_replacement
-	WHERE replaced_sqm != 0 AND new_sqm <= replaced_sqm AND c_sqm <= d_sqm
+	UNION ALL 
+	SELECT id_pand, 'Bouw gestart' AS status FROM constructions_new
 ), 
 housing_reality AS (
 	SELECT * 
@@ -57,35 +80,35 @@ housing_reality AS (
 ), 
 
 -- replace constructions with renovations (when applicable)
-housing_s1_renovations AS (
+housing_s1 AS (
 	SELECT 
 	    COALESCE(hs.status, hr.status) AS status, -- Use status from housing_s1 if exists, else keep original status
 		hr.function, hr.sqm, hr.id_pand, hr.build_year, 
 		hr.document_date, hr.document_number, hr.registration_start, hr.registration_end, hr.geom, hr.geom_28992, 
 		hr.neighborhood_code, hr.neighborhood, hr.municipality, hr.province
 	FROM housing_reality hr
-	LEFT JOIN renovations hs
+	LEFT JOIN housing_s1_construction hs
 	ON hr.id_pand = hs.id_pand
 ), 
 
 -- delete demolitions that were replaced by renovation - s1 
 renovations_s1 AS (
-	SELECT * FROM housing_s1_renovations WHERE status = 'renovation - s1'
+	SELECT * 
+	FROM housing_s1
+	WHERE status = 'renovation - s1'
 ), 
 demolitions_to_delete AS (
 	SELECT h.*
-	FROM housing_s1_renovations h 
+	FROM housing_s1 h 
 	JOIN renovations_s1 r 
 	ON h.neighborhood_code = r.neighborhood_code 
 		AND ST_intersects(h.geom_28992, r.geom_28992)
 	WHERE h.status = 'Pand gesloopt'
-), 
-housing_s1 AS (
-	SELECT * 
-	FROM housing_s1_renovations
-	WHERE NOT (
-	        status = 'Pand gesloopt' 
-	        AND id_pand IN (SELECT id_pand FROM demolitions_to_delete)
-	    )
 )
-SELECT * FROM housing_s1
+
+SELECT * 
+FROM housing_s1
+WHERE NOT (
+        status = 'Pand gesloopt' 
+        AND id_pand IN (SELECT id_pand FROM demolitions_to_delete)
+    )
