@@ -9,7 +9,7 @@ from data_processing._common.index_adder import IndexAdder
 
 from data_processing.landuse.landuse_gml_importer import LanduseGmlImporter
 from data_processing.cbs.cbs_data_processor import CBSCsvDownloader, CBSShpDownloader, CBSDataImporter, CBSDataCombiner
-from emissions_calculations.embodied_emissions.embodied_emissions_pipeline import NlBuurtenMaker, AdminBoundaryAdder, RenovationInfoAdder, HousingFunctionSqmEstimator, EmbodiedEmissionsCalculator
+from emissions_calculations.embodied_emissions.embodied_emissions_pipeline import NlBuurtenMaker, AdminBoundaryAdder, RenovationInfoAdder, HousingFunctionSqmEstimator, EmbodiedEmissionsCalculator_byBuurt, EmbodiedEmissionsCalculator
 
 from data_processing.bag.housing_snapshot_maker import HousingSnapshotMaker
 
@@ -54,7 +54,7 @@ class EmbodiedEmissionsPipeline():
         # AdminBoundaryAdder().run() # run at your own peril - takes an hour
         # RenovationInfoAdder().run()
         # HousingFunctionSqmEstimator().run()
-        EmbodiedEmissionsCalculator().run()
+        EmbodiedEmissionsCalculator_byBuurt().run()
         self.end_time = time.time()
         print(f'Pipeline took {round((self.end_time - self.start_time)/60, 2)} minutes to run.')
 
@@ -67,6 +67,10 @@ class EmissionsAggregator():
         QueryRunner('sql/create_table/emissions_all.sql').run_query('Creating emissions_all table...')
         QueryRunner('sql/combined_emissions/combine_emissions_by_buurt.sql').run_query_for_each_municipality('Running query to combine emissions...')
     
+class PanelDataRegression(): 
+    def run(self): 
+        None 
+
 class S1Pipeline(): 
     def run(self): 
         QueryRunner('sql/create_table/demolished_buildings_nl.sql').run_query('Creating demolished_buildings_nl table...')  
@@ -84,7 +88,7 @@ if __name__ == '__main__':
     # LanduseDataPipeline().run()
     
     # # EXISTING EMISSIONS CALCULATIONS 
-    # EmbodiedEmissionsPipeline().run()
+    EmbodiedEmissionsPipeline().run()
     # OperationalEmissionsPipeline().run()
     # EmissionsAggregator().run()
     # TODO: save results to csv
@@ -92,7 +96,7 @@ if __name__ == '__main__':
     # # STRATEGY ONE - CIRCULAR ECONOMY (minimize materials) 
     # S1Pipeline().run()
     
-    start_time = time.time()
-    HousingSnapshotMaker(2012, 2022).run()
-    end_time = time.time()
-    print(f'\nIt took {round((end_time - start_time)/60, 2)} minutes to create a snapshot of in-use housing in 2012.')
+    # SNAPSHOT OF HOUSING IN USE
+    # HousingSnapshotMaker(2012, 2022).run() # caution: takes two hours to run
+
+

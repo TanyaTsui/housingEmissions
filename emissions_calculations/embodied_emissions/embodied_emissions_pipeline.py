@@ -28,6 +28,11 @@ class HousingFunctionSqmEstimator():
         QueryRunner('sql/embodied_emissions/function_sqm/add_landuse_column.sql').run_query('Adding landuse column to housing_nl...')
         QueryRunner('sql/embodied_emissions/function_sqm/filter_out_non_residential.sql').run_query_for_each_municipality('Filtering out non-residential buildings using landuse data...')
 
+class EmbodiedEmissionsCalculator_byBuurt():
+    def run(self):
+        QueryRunner('sql/create_table/emissions_embodied_bybuurt.sql').run_query('Creating emissions_embodied_bybuurt table...')
+        QueryRunner('sql/embodied_emissions/calculate_emissions/calculate_embodied_emissions_bybuurt.sql').run_query_for_each_municipality('Aggregating housing data by buurt...')
+
 class EmbodiedEmissionsCalculator(): 
     def run(self):
         QueryRunner('sql/create_table/emissions_embodied_housing_nl.sql').run_query('Creating emissions_embodied_housing_nl table...')
