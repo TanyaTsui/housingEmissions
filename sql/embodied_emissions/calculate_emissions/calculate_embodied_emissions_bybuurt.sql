@@ -51,7 +51,7 @@ housing_stats AS (
 	ON e.neighborhood_code = d.neighborhood_code 
 		AND e.year = d.year + 1
 )
-SELECT SUM(net_construction_p), SUM(net_construction_t) FROM housing_stats 
+SELECT * FROM housing_stats 
 WHERE (net_construction_p IS NOT NULL OR net_construction_t IS NOT NULL) 
 	AND (net_construction_p != 0 OR net_construction_t != 0)
 

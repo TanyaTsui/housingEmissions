@@ -69,6 +69,9 @@ class EmissionsAggregator():
     
 class PanelDataRegression(): 
     def run(self): 
+        # create df using SQL query 
+        # run regression 
+        # save regression results 
         None 
 
 class S1Pipeline(): 
@@ -88,10 +91,13 @@ if __name__ == '__main__':
     # LanduseDataPipeline().run()
     
     # # EXISTING EMISSIONS CALCULATIONS 
-    EmbodiedEmissionsPipeline().run()
+    # EmbodiedEmissionsPipeline().run()
     # OperationalEmissionsPipeline().run()
     # EmissionsAggregator().run()
-    # TODO: save results to csv
+
+    # # NEW HOMES EMISSIONS CALCULATIONS
+    QueryRunner('sql/create_table/new_housing_emissions.sql').run_query('Creating new_housing_emissions table...')
+    QueryRunner('sql/new_housing/new_housing_emissions.sql').run_query_for_each_municipality('Calculating emissions for new housing...')
 
     # # STRATEGY ONE - CIRCULAR ECONOMY (minimize materials) 
     # S1Pipeline().run()
