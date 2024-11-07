@@ -14,6 +14,12 @@ WHERE
 	status = 'transformation - function change'
 	AND municipality = 'Delft'; 
 
+INSERT INTO housing_nl (
+	function, sqm, n_units, id_pand, geometry, build_year, status, 
+	document_date, document_number, registration_start, registration_end, 
+	geom, geom_28992, neighborhood_code, wk_code, municipality
+)
+
 -- Insert the result of the query into the table
 WITH bag_vbo_sample AS (
 	SELECT * 
@@ -32,7 +38,7 @@ transformed_units AS (
 	SELECT 
 		id_vbo, id_num, id_pand, geometry, function, sqm, status, 
 		document_date, document_number, registration_start, registration_end, 
-		geom, geom_28992, neighborhood_code, neighborhood, municipality, province
+		geom, geom_28992, neighborhood_code, wk_code, municipality
 	FROM vbo_ordered
 	WHERE 
 	    function = 'woonfunctie'
@@ -42,7 +48,7 @@ transformed_units AS (
 buildings_transformed AS (
 	SELECT 
 		id_pand, LEFT(registration_start, 4) AS registration_year, 
-		SUM(sqm::INTEGER) AS sqm 
+		SUM(sqm::INTEGER) AS sqm, COUNT(*) AS n_units 
 	FROM transformed_units
 	GROUP BY id_pand, LEFT(registration_start, 4)
 ), 
@@ -54,12 +60,12 @@ buildings_municipality AS (
 ), 
 buildings_transformed_withinfo AS (
 	SELECT 
-		'woonfunctie' AS function, t.sqm, t.id_pand, 
+		'woonfunctie' AS function, t.sqm, t.n_units, t.id_pand, 
 		m.geometry, m.build_year, 
 		'transformation - function change' AS status, 
 		m.document_date, m.document_number, 
 		m.registration_start, m.registration_end, 
-		m.geom, m.geom_28992, m.neighborhood_code, m.neighborhood, m.municipality, m.province
+		m.geom, m.geom_28992, m.neighborhood_code, m.wk_code, m.municipality
 	FROM buildings_transformed t 
 	LEFT JOIN LATERAL (
 	    SELECT * 
@@ -77,10 +83,6 @@ buildings_transformed_withinfo_fitered AS (
 	WHERE municipality IS NOT NULL
 )
 
-INSERT INTO housing_nl (
-	function, sqm, id_pand, geometry, build_year, status, 
-	document_date, document_number, registration_start, registration_end, 
-	geom, geom_28992, neighborhood_code, neighborhood, municipality, province
-)
+
 SELECT * 
-FROM buildings_transformed_withinfo_fitered
+FROM buildings_transformed_withinfo_fitered WHERE n_units IS NOT NULL 

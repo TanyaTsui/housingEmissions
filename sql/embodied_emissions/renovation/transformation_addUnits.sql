@@ -16,6 +16,12 @@ WHERE
 	status = 'transformation - adding units'
 	AND municipality = 'Delft'; 
 
+INSERT INTO housing_nl (
+    function, sqm, n_units, id_pand, geometry, build_year, status, 
+    document_date, document_number, registration_start, registration_end, 
+    geom, geom_28992, neighborhood_code, wk_code, municipality
+)
+
 -- Insert the result of the query into the table
 WITH bag_vbo_sample AS (
     SELECT * 
@@ -49,7 +55,7 @@ units_added AS (
 	SELECT 
 		id_vbo, id_num, id_pand, geometry, function, sqm, status, 
 		document_date, document_number, registration_start, registration_end, 
-		geom, geom_28992, neighborhood_code, neighborhood, municipality, province, 
+		geom, geom_28992, neighborhood_code, wk_code, municipality, 
 		'transformation - adding units' AS renovation
 	FROM units_build_year
 	WHERE build_year::INTEGER + 1 < LEFT(registration_start, 4)::INTEGER
@@ -57,7 +63,7 @@ units_added AS (
 units_added_aggregated AS (
     SELECT 
         id_pand, LEFT(registration_start, 4) AS registration_start,
-        SUM(sqm::INTEGER) AS sqm 
+        SUM(sqm::INTEGER) AS sqm, COUNT(*) AS n_units 
     FROM units_added
     GROUP BY id_pand, LEFT(registration_start, 4)
 ), 
@@ -69,12 +75,12 @@ buildings_municipality AS (
 ),
 units_added_withinfo AS (
     SELECT 
-        'woonfunctie' AS function, u.sqm, u.id_pand, 
+        'woonfunctie' AS function, u.sqm, u.n_units, u.id_pand, 
         m.geometry, m.build_year, 
         'transformation - adding units' AS status, 
         m.document_date, m.document_number, 
         u.registration_start, NULL as registration_end, 
-        m.geom, m.geom_28992, m.neighborhood_code, m.neighborhood, m.municipality, m.province
+        m.geom, m.geom_28992, m.neighborhood_code, m.wk_code, m.municipality
     FROM units_added_aggregated u 
     LEFT JOIN LATERAL (
         SELECT * 
@@ -91,10 +97,5 @@ units_added_withinfo_filtered AS (
     WHERE municipality IS NOT NULL
 )
 
-INSERT INTO housing_nl (
-    function, sqm, id_pand, geometry, build_year, status, 
-    document_date, document_number, registration_start, registration_end, 
-    geom, geom_28992, neighborhood_code, neighborhood, municipality, province
-)
 SELECT *
-FROM units_added_withinfo_filtered;
+FROM units_added_withinfo_filtered WHERE n_units IS NOT NULL 

@@ -5,6 +5,12 @@ WHERE
 	AND status = 'renovation - pre2020';
 
 -- Insert rows from the query into housing_nl
+INSERT INTO housing_nl (
+	function, sqm, n_units, id_pand, geometry, build_year, status, 
+	document_date, document_number, registration_start, registration_end, 
+	geom, geom_28992, neighborhood_code, wk_code, municipality
+)
+
 WITH bag_pand_municipality AS (
 	SELECT * FROM bag_pand
 	WHERE 
@@ -26,7 +32,7 @@ pand_renovations AS (
 		registration_start::TEXT, 
 		registration_end::TEXT, 
 		geom, geom_28992, 
-		neighborhood_code, neighborhood, municipality, province
+		neighborhood_code, wk_code, municipality
 	FROM ranked_pand
 	WHERE 
 		status = 'Pand in gebruik (niet ingemeten)' 
@@ -47,7 +53,7 @@ housing_units_unique AS (
 	FROM housing_units_inuse
 ), 
 housing_sqm AS (
-	SELECT id_pand, SUM(sqm::INTEGER) AS sqm
+	SELECT id_pand, SUM(sqm::INTEGER) AS sqm, COUNT(*) AS n_units
 	FROM housing_units_unique
 	GROUP BY id_pand
 ), 
@@ -57,18 +63,13 @@ housing_sqm_function AS (
 ), 
 housing_sqm_function_withinfo AS (
 	SELECT 
-		h.function, h.sqm, 
+		h.function, h.sqm, h.n_units, 
 		r.id_pand, r.geometry, r.build_year, r.status, 
 		r.document_date, r.document_number, r.registration_start, r.registration_end, 
-		r.geom, r.geom_28992, r.neighborhood_code, r.neighborhood, r.municipality, r.province
+		r.geom, r.geom_28992, r.neighborhood_code, r.wk_code, r.municipality
 	FROM pand_renovations r
 	LEFT JOIN housing_sqm_function h
 	ON r.id_pand = h.id_pand
 )
 
-INSERT INTO housing_nl (
-	function, sqm, id_pand, geometry, build_year, status, 
-	document_date, document_number, registration_start, registration_end, 
-	geom, geom_28992, neighborhood_code, neighborhood, municipality, province
-)
-SELECT * FROM housing_sqm_function_withinfo
+SELECT * FROM housing_sqm_function_withinfo WHERE sqm IS NOT NULL 

@@ -1,5 +1,4 @@
-DROP TABLE IF EXISTS housing_nl;
-CREATE TABLE housing_nl (
+CREATE TABLE IF NOT EXISTS housing_nl (
     function TEXT,
     sqm BIGINT,
     id_pand VARCHAR,
