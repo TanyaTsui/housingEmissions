@@ -1,10 +1,10 @@
-DELETE FROM housing_nl_s1
+DELETE FROM housing_nl_s2
 WHERE municipality = 'Amsterdam';
 
-INSERT INTO housing_nl_s1 (
+INSERT INTO housing_nl_s2 (
 	status, function, sqm, id_pand, build_year, document_date, document_number, 
 	registration_start, registration_end, geom, geom_28992, 
-	neighborhood_code, neighborhood, municipality, province
+	neighborhood_code, wk_code, wk_geom, municipality
 )
 
 -- get demolitions and constructions in area 
@@ -88,4 +88,12 @@ housing_s1 AS (
 	        AND id_pand IN (SELECT id_pand FROM demolitions_to_delete)
 	    )
 )
-SELECT * FROM housing_s1
+
+-- add wk_code and wk_geom (for future aggregation)
+SELECT h.status, h.function, h.sqm, h.id_pand, h.build_year, 
+	h.document_date, h.document_number, h.registration_start, h.registration_end, 
+	h.geom, h.geom_28992, h.neighborhood_code, 
+	k.wk_code, k.wk_geom, k.municipality
+FROM housing_s1 h
+LEFT JOIN key_buurt2022_to_wijk2012 k
+ON h.neighborhood_code = k.neighborhood_code 

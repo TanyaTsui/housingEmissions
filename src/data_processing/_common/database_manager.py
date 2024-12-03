@@ -56,6 +56,7 @@ class DatabaseManager:
         cursor.execute('''SELECT DISTINCT gm_naam FROM cbs_wijk_2012''')
         municipalities_list = cursor.fetchall()
         return [municipality[0] for municipality in municipalities_list]
+        # return ['Zoeterwoude'] # for testing
     
     def add_file_to_db(self, gpkg_file_path):
         db_params = self.params_manager.get_database_params()

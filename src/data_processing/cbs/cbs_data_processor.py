@@ -1,14 +1,12 @@
 import pandas as pd
 import geopandas as gpd
-import math
-import numpy as np
 import os
 import re
 import zipfile
 import shutil
-import psycopg2
 from sqlalchemy import create_engine
 
+from src.data_processing._common.database_manager import DatabaseManager
 from src.data_processing._common.params_manager import ParamsManager
 from src.data_processing._common.query_runner import QueryRunner
 
@@ -203,6 +201,25 @@ class CBSDataImporter():
         print(f'Imported {shp_file_path} to {table_name} in database.')
 
 class CBSDataHarmoniser(): 
+    def __init__(self): 
+        self.db_manager = DatabaseManager()
+        self.conn = self.db_manager.connect()
+        self.cursor = self.conn.cursor()
+        self.engine = self.db_manager.get_sqlalchemy_engine()
+
+
     def run(self): 
         QueryRunner('sql/create_table/cbs_map_all_wijk.sql').run_query('creating cbs_map_all_wijk table...') # creates table if it doesn't already exist
         QueryRunner('sql/data_processing/cbs/make_cbs_map_all_wijk.sql').run_query_for_cbs_map_all_wijk('inserting data into cbs_map_all_wijk table...')
+        self.create_indexes()
+
+    def create_indexes(self):
+        query = ''' 
+        -- Individual indexes for cbs_map_all_wijk
+        CREATE INDEX IF NOT EXISTS idx_cbs_map_all_wijk_municipality ON cbs_map_all_wijk (municipality);
+        CREATE INDEX IF NOT EXISTS idx_cbs_map_all_wijk_year ON cbs_map_all_wijk (year);
+        CREATE INDEX IF NOT EXISTS idx_cbs_map_all_wijk_wk_code ON cbs_map_all_wijk (wk_code);
+        '''
+        self.conn.rollback()
+        self.cursor.execute(query)
+        self.conn.commit()

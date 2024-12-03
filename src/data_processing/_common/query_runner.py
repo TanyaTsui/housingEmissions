@@ -14,7 +14,6 @@ class QueryRunner():
         self.engine = self.db_manager.get_sqlalchemy_engine()
         self.query, self.n_placeholders = self.get_query_info(file_path)
         self.municipalities = self.db_manager.get_municipalities_list()
-        # self.municipalities = ['Delft'] # testing 
 
     def get_query_info(self, file_path):
         query = self._read_query_from_file(file_path)
@@ -37,7 +36,8 @@ class QueryRunner():
         self.conn.rollback()
         self.cursor.execute(self.query)
         self.conn.commit()
-        print('Done!\n')
+        if message != '':
+            print('Done!\n')
 
     def get_dataframe_from_query(self): 
         df = pd.read_sql(self.query, self.engine)

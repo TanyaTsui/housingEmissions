@@ -3,20 +3,19 @@ from src.data_processing._common.database_manager import DatabaseManager
 
 class HousingSnapshotMaker(): 
     def __init__(self, start_year, end_year):
-        print(f'\nCreating snapshot of housing for years {start_year} to {end_year} ...')
         self.start_year = start_year 
         self.end_year = end_year
         self.municipalities = DatabaseManager().get_municipalities_list()
-        # self.municipalities = ['Delft', 'Venlo'] # for testing 
 
     def run(self): 
+        print(f'\nCreating snapshot of housing (housing_inuse_{self.start_year}_{self.end_year}) for years {self.start_year} t/m {self.end_year} ...')
         self.connect_to_db() 
         self.make_snapshot_table()
         for year in range(self.start_year, self.end_year + 1):
-            print(f'\nCreating snapshot of housing in use for {year} ...') 
             self.year = year
             self.query = self.make_query() 
             self.fill_snapshot_table()
+        self.create_indexes() 
 
     def connect_to_db(self):
         self.conn = DatabaseManager().connect()
@@ -44,10 +43,8 @@ class HousingSnapshotMaker():
 
     def fill_snapshot_table(self):
         n_placeholders = self.query.count('%s')
-        print(n_placeholders)
-        print(self.query)
         for i, municipality in enumerate(self.municipalities): 
-            output = f"\rProcessing municipality ({i+1}/{len(self.municipalities)}): {municipality}                         "
+            output = f"\rYear ({self.year - self.start_year + 1}/{self.end_year - self.start_year + 1}): {self.year} | Municipality ({i+1}/{len(self.municipalities)}): {municipality}                         "
             sys.stdout.write(output)
             sys.stdout.flush()
             self.cursor.execute(self.query, (municipality,) * n_placeholders)
@@ -95,9 +92,21 @@ class HousingSnapshotMaker():
             FROM housing_buildings a 
             LEFT JOIN bag_pand_municipality b 
             ON a.id_pand = b.id_pand 
-            WHERE b.id_pand IS NOT NULL -- remove 0.05% of buildings that are not in bag_pand_municipality 
+            WHERE b.id_pand IS NOT NULL -- remove 0.05 percent of buildings that are not in bag_pand_municipality 
             '''
     
+    def create_indexes(self):
+        query = f''' 
+        -- Individual indexes for housing_inuse
+        CREATE INDEX IF NOT EXISTS idx_housing_inuse_municipality ON housing_inuse_{self.start_year}_{self.end_year} (municipality);
+        CREATE INDEX IF NOT EXISTS idx_housing_inuse_year ON housing_inuse_{self.start_year}_{self.end_year} (year);
+        CREATE INDEX IF NOT EXISTS idx_housing_inuse_wk_code ON housing_inuse_{self.start_year}_{self.end_year} (wk_code);
+        CREATE INDEX IF NOT EXISTS idx_housing_inuse_id_pand ON housing_inuse_{self.start_year}_{self.end_year} (id_pand);
+        '''
+        self.conn.rollback()
+        self.cursor.execute(query)
+        self.conn.commit()
+
     def make_query_withGuesses(self):
         return f''' 
             -- get subset of housing units and buildings in municipality

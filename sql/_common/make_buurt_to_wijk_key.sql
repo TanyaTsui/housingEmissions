@@ -25,7 +25,7 @@ buurten_with_wijk_overlap AS (
     FROM buurten b  
     JOIN wijken w 
     ON b.neighborhood_geom && w.wk_geom
-        AND ST_Within(b.neighborhood_geom, w.wk_geom_buffer)
+        -- AND ST_Intersects(b.neighborhood_geom, w.wk_geom_buffer)
 ),
 buurten_with_wijk AS (
     SELECT *, 
