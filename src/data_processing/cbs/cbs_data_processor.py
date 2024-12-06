@@ -15,7 +15,7 @@ class CBSDataProcessor():
         # CBSCsvDownloader().run()
         # CBSShpDownloader().run()
         # CBSDataImporter().run()
-        CBSDataHarmoniser().run()
+        None 
 
 class CBSCsvDownloader(): 
     # not really needed - data is already in shp files
@@ -207,19 +207,45 @@ class CBSDataHarmoniser():
         self.cursor = self.conn.cursor()
         self.engine = self.db_manager.get_sqlalchemy_engine()
 
-
     def run(self): 
-        QueryRunner('sql/create_table/cbs_map_all_wijk.sql').run_query('creating cbs_map_all_wijk table...') # creates table if it doesn't already exist
-        QueryRunner('sql/data_processing/cbs/make_cbs_map_all_wijk.sql').run_query_for_cbs_map_all_wijk('inserting data into cbs_map_all_wijk table...')
+        QueryRunner('sql/create_table/cbs_map_all_buurt.sql').run_query('creating cbs_map_all_buurt table...') # creates table if it doesn't already exist
+        QueryRunner('sql/data_processing/cbs/make_cbs_map_all_buurt.sql').run_query_for_each_municipality('inserting data into cbs_map_all_buurt table...')
         self.create_indexes()
 
     def create_indexes(self):
         query = ''' 
-        -- Individual indexes for cbs_map_all_wijk
-        CREATE INDEX IF NOT EXISTS idx_cbs_map_all_wijk_municipality ON cbs_map_all_wijk (municipality);
-        CREATE INDEX IF NOT EXISTS idx_cbs_map_all_wijk_year ON cbs_map_all_wijk (year);
-        CREATE INDEX IF NOT EXISTS idx_cbs_map_all_wijk_wk_code ON cbs_map_all_wijk (wk_code);
+        -- Individual indexes for cbs_map_all_buurt
+        CREATE INDEX IF NOT EXISTS idx_cbs_map_all_buurt_municipality ON cbs_map_all_buurt (municipality);
+        CREATE INDEX IF NOT EXISTS idx_cbs_map_all_buurt_wk_code ON cbs_map_all_buurt (wk_code);
+        CREATE INDEX IF NOT EXISTS idx_cbs_map_all_buurt_bu_code ON cbs_map_all_buurt (bu_code);
+        CREATE INDEX IF NOT EXISTS idx_cbs_map_all_buurt_year ON cbs_map_all_buurt (year);
         '''
         self.conn.rollback()
         self.cursor.execute(query)
         self.conn.commit()
+
+
+# old harmonizer: hamonizes data from cbs_map_2012-2022 using 2012 wijk geoms 
+# class CBSDataHarmoniser(): 
+#     def __init__(self): 
+#         self.db_manager = DatabaseManager()
+#         self.conn = self.db_manager.connect()
+#         self.cursor = self.conn.cursor()
+#         self.engine = self.db_manager.get_sqlalchemy_engine()
+
+
+#     def run(self): 
+#         QueryRunner('sql/create_table/cbs_map_all_wijk.sql').run_query('creating cbs_map_all_wijk table...') # creates table if it doesn't already exist
+#         QueryRunner('sql/data_processing/cbs/make_cbs_map_all_wijk.sql').run_query_for_cbs_map_all_wijk('inserting data into cbs_map_all_wijk table...')
+#         self.create_indexes()
+
+#     def create_indexes(self):
+#         query = ''' 
+#         -- Individual indexes for cbs_map_all_wijk
+#         CREATE INDEX IF NOT EXISTS idx_cbs_map_all_wijk_municipality ON cbs_map_all_wijk (municipality);
+#         CREATE INDEX IF NOT EXISTS idx_cbs_map_all_wijk_year ON cbs_map_all_wijk (year);
+#         CREATE INDEX IF NOT EXISTS idx_cbs_map_all_wijk_wk_code ON cbs_map_all_wijk (wk_code);
+#         '''
+#         self.conn.rollback()
+#         self.cursor.execute(query)
+#         self.conn.commit()

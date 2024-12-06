@@ -23,7 +23,7 @@ WITH housing_nl_s2 AS (
         END AS status, 
         sqm, wk_code, wk_geom, municipality
     FROM housing_nl_s2
-    WHERE LEFT(registration_start, 4)::INTEGER BETWEEN 2012 AND 2022 
+    WHERE LEFT(registration_start, 4)::INTEGER BETWEEN 2012 AND 2021
 		AND municipality = 'Delft'
 ), 
 sqm AS (
@@ -34,6 +34,7 @@ sqm AS (
 	    SUM(CASE WHEN status = 'transformation' THEN sqm ELSE 0 END) AS transformation,
 	    SUM(CASE WHEN status = 'renovation' THEN sqm ELSE 0 END) AS renovation
 	FROM housing_nl_s2
+	WHERE year BETWEEN 2012 AND 2021
 	GROUP BY year, municipality, wk_code, wk_geom
 ), 
 embodied_emissions AS (

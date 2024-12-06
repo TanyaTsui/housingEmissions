@@ -202,8 +202,8 @@ class s2CircularEconomy():
         # QueryRunner('sql/data_processing/bag/get_demolished_buildings_nl.sql').run_query_for_each_municipality('Getting demolished buildings...')
         
         # create and fill housing_nl_s2 table
-        QueryRunner('sql/create_table/housing_nl_s2.sql').run_query('Creating housing_nl_s2 table...')
-        QueryRunner('sql/s1_circular_economy/renovation_suitability.sql').run_query_for_each_municipality('Adding to housing_nl_s2...')
+        # QueryRunner('sql/create_table/housing_nl_s2.sql').run_query('Creating housing_nl_s2 table...')
+        # QueryRunner('sql/s1_circular_economy/renovation_suitability.sql').run_query_for_each_municipality('Adding to housing_nl_s2...')
 
         # create and fill emissions_all_wijk_s2 table
         QueryRunner('sql/create_table/emissions_all_wijk_s2.sql').run_query('Creating emissions_all_wijk_s2 table...')
