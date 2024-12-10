@@ -5,21 +5,21 @@ WHERE
 	AND status = 'renovation - post2020';
 
 INSERT INTO housing_nl (
-	function, sqm, n_units, id_pand, geometry, build_year, status, 
+	function, sqm, n_units, id_pand, build_year, status, 
 	document_date, document_number, registration_start, registration_end, 
-	geom, geom_28992, neighborhood_code, wk_code, municipality
+	pand_geom, bu_code, wk_code, municipality
 )
 
 -- Insert rows from the query into housing_nl
 WITH building_renovations AS (
 	SELECT 
-		id_pand, geometry, build_year, 
+		id_pand, build_year, 
 		CASE 
 			WHEN status = 'Verbouwing pand' THEN 'renovation - post2020'
 			ELSE status
 		END AS status, 
 		document_date, document_number, registration_start, registration_end, 
-		geom, geom_28992, neighborhood_code, wk_code, municipality
+		pand_geom, bu_code, wk_code, municipality
 	FROM bag_pand
 	WHERE 
 		municipality = 'Delft' 
@@ -51,9 +51,9 @@ housing_sqm_function AS (
 housing_sqm_function_withinfo AS (
 	SELECT 
 		h.function, h.sqm, h.n_units, 
-		r.id_pand, r.geometry, r.build_year, r.status, 
+		r.id_pand, r.build_year, r.status, 
 		r.document_date, r.document_number, r.registration_start, r.registration_end, 
-		r.geom, r.geom_28992, r.neighborhood_code, r.wk_code, r.municipality
+		r.pand_geom, r.bu_code, r.wk_code, r.municipality
 	FROM building_renovations r
 	LEFT JOIN housing_sqm_function h
 	ON r.id_pand = h.id_pand

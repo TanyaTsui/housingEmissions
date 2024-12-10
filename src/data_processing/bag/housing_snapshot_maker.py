@@ -287,11 +287,11 @@ class HousingSnapshotBuurtStatsAdder():
         -- use bbox to select buurt-level cbs data from cbs_map_{self.year} (and other years as well)
         cbs_data_year AS (
             SELECT b.*, a.geometry, a."BU_CODE" AS bu_code, 
-                COALESCE(NULLIF(CASE WHEN "AANT_INW" < 0 THEN NULL ELSE "AANT_INW" END, NULL), 0) AS population,
-                COALESCE(NULLIF(CASE WHEN "WONINGEN" < 0 THEN NULL ELSE "WONINGEN" END, NULL), 0) AS n_homes, 
-                COALESCE(NULLIF(CASE WHEN "WOZ" < 0 THEN NULL ELSE "WOZ" END, NULL), 0) AS woz, 
-                COALESCE(NULLIF(CASE WHEN "G_GAS_TOT" < 0 THEN NULL ELSE "G_GAS_TOT" END, NULL), 0) AS av_gas_m3, 
-                COALESCE(NULLIF(CASE WHEN "G_ELEK_TOT" < 0 THEN NULL ELSE "G_ELEK_TOT" END, NULL), 0) AS av_elec_kwh
+                CASE WHEN "AANT_INW" < 0 THEN NULL ELSE "AANT_INW" END AS population, 
+                CASE WHEN "WONINGEN" < 0 THEN NULL ELSE "WONINGEN" END AS n_homes, 
+                CASE WHEN "WOZ" < 0 THEN NULL ELSE "WOZ" END AS woz, 
+                CASE WHEN "G_GAS_TOT" < 0 THEN NULL ELSE "G_GAS_TOT" END AS av_gas_m3, 
+                CASE WHEN "G_ELEK_TOT" < 0 THEN NULL ELSE "G_ELEK_TOT" END AS av_elec_kwh 
             FROM cbs_map_{self.year} a 
             JOIN bbox_buurt2022 b 
             ON a.geometry && b.bbox_geom

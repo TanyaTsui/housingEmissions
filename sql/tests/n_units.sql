@@ -99,42 +99,42 @@
 
 -- TEST 3 
 -- Abnormally high energy use values 
-WITH problem_bu_codes AS (
-	SELECT bu_code, bu_geom, n_units, 
-		ROUND(tot_gas_m3 / n_units) AS gas_per_unit, ROUND(tot_elec_kwh / n_units) AS elec_per_unit 
-	FROM cbs_map_all_buurt
-	WHERE 
-		year = 2015
-		AND (tot_gas_m3 / n_units > 1326*5
-		OR tot_elec_kwh / n_units > 2960 * 5)
-	ORDER BY tot_gas_m3 / n_units DESC
-), 
-bag_vbo_year AS (
-	SELECT * 
-	FROM bag_vbo 
-	WHERE 
-		sqm::INTEGER < 9999
-		AND function = 'woonfunctie'
-		AND LEFT(registration_start, 4)::INTEGER <= 2015
-		AND (registration_end IS NULL OR LEFT(registration_end, 4)::INTEGER > 2015)
-), 
-problem_vbos AS (
-	SELECT * 
-	FROM problem_bu_codes a 
-	JOIN bag_vbo_year b 
-	ON ST_Intersects(b.geom_28992, a.bu_geom)
-), 
-n_units_vbo AS (
-	SELECT bu_code, COUNT(*) AS n_units_vbo 
-	FROM problem_vbos 
-	GROUP BY bu_code
-)
+-- WITH problem_bu_codes AS (
+-- 	SELECT bu_code, bu_geom, n_units, 
+-- 		ROUND(tot_gas_m3 / n_units) AS gas_per_unit, ROUND(tot_elec_kwh / n_units) AS elec_per_unit 
+-- 	FROM cbs_map_all_buurt
+-- 	WHERE 
+-- 		year = 2015
+-- 		AND (tot_gas_m3 / n_units > 1326*5
+-- 		OR tot_elec_kwh / n_units > 2960 * 5)
+-- 	ORDER BY tot_gas_m3 / n_units DESC
+-- ), 
+-- bag_vbo_year AS (
+-- 	SELECT * 
+-- 	FROM bag_vbo 
+-- 	WHERE 
+-- 		sqm::INTEGER < 9999
+-- 		AND function = 'woonfunctie'
+-- 		AND LEFT(registration_start, 4)::INTEGER <= 2015
+-- 		AND (registration_end IS NULL OR LEFT(registration_end, 4)::INTEGER > 2015)
+-- ), 
+-- problem_vbos AS (
+-- 	SELECT * 
+-- 	FROM problem_bu_codes a 
+-- 	JOIN bag_vbo_year b 
+-- 	ON ST_Intersects(b.geom_28992, a.bu_geom)
+-- ), 
+-- n_units_vbo AS (
+-- 	SELECT bu_code, COUNT(*) AS n_units_vbo 
+-- 	FROM problem_vbos 
+-- 	GROUP BY bu_code
+-- )
 
-SELECT * 
-FROM problem_bu_codes a 
-JOIN n_units_vbo b 
-ON a.bu_code = b.bu_code 
-WHERE a.n_units >= b.n_units_vbo 
+-- SELECT * 
+-- FROM problem_bu_codes a 
+-- JOIN n_units_vbo b 
+-- ON a.bu_code = b.bu_code 
+-- WHERE a.n_units >= b.n_units_vbo 
 
 
 
@@ -146,4 +146,14 @@ WHERE a.n_units >= b.n_units_vbo
 -- JOIN cbs_map_2015 b 
 -- ON a.bu_geom && b.geometry 
 -- 	AND ST_Intersects(a.bu_geom, b.geometry)
+
+
+-- TEST 4 
+-- abnormally high per home energy use in CBS data 
+SELECT
+	"WONINGEN", "G_GAS_TOT", "G_ELEK_TOT", "BU_CODE", geometry
+FROM cbs_map_2012 
+ORDER BY "G_GAS_TOT" DESC
+LIMIT 10
+
 

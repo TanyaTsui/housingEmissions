@@ -3,19 +3,9 @@ from src.data_processing._common.query_runner import QueryRunner
 class AdminBoundaryAdder(): 
     def run(self):
         # QueryRunner('sql/data_processing/bag/add_admin_columns.sql').run_query('Adding admin boundary columns to bag...')
-        
-        # make buurt to wijk key
-        # QueryRunner('sql/_common/make_buurt_to_wijk_key.sql').run_query_for_each_municipality('Making buurt to wijk key...')
-        # QueryRunner('sql/_common/buurt_and_wijk_key_delete_duplicates.sql').run_query() 
-        
-        # add wk_code to tables 
-        QueryRunner('sql/data_processing/bag/match_admin_boundaries_bagvbo_wijk.sql').run_query_for_each_municipality('Matching bag vbo to admin boundaries (from cbs_wijk_2012) ...') # finished running
-        QueryRunner('sql/data_processing/bag/match_admin_boundaries_bagpand_wijk.sql').run_query_for_each_municipality('Matching bag pand to admin boundaries (from cbs_wijk_2012) ...')
-        QueryRunner('sql/data_processing/bag/match_admin_boundaries_housinginuse_wijk.sql').run_query_for_each_municipality('Matching housinginuse to admin boundaries (from cbs_wijk_2012) ...')
-        QueryRunner('sql/data_processing/bag/match_admin_boundaries_housingnl_wijk.sql').run_query_for_each_municipality('Matching housingnl to admin boundaries (from cbs_wijk_2012) ...')
-
         # QueryRunner('sql/data_processing/bag/create_index_bag.sql').run_query('Creating index for bag...')
-        # QueryRunner('sql/data_processing/ahn/match_admin_boundaries_ahn.sql').run_query_for_each_municipality('Matching ahn to admin boundaries...')
+        QueryRunner('sql/data_processing/bag/match_admin_boundaries_bagvbo_buurt.sql').run_query_for_each_municipality('Adding 2022 admin boundaries to bag_vbo (from cbs_map_2022)...')
+        QueryRunner('sql/data_processing/bag/match_admin_boundaries_bagpand_buurt.sql').run_query_for_each_municipality('Adding 2022 admin boundaries to bag_pand (from cbs_map_2022)...')
         None 
 
 class ConstructionActivityInfoAdder(): 
@@ -34,7 +24,19 @@ class ConstructionActivityInfoAdder():
         # construction and demolition activity
         QueryRunner('sql/embodied_emissions/construction_and_demolition/add_construction_and_demolition.sql').run_query_for_each_municipality('Adding construction and demolition data to housing_nl...') 
 
+class DataHarmoniserWijk(): 
+    def run(self): 
+        # make buurt to wijk key
+        # QueryRunner('sql/_common/make_buurt_to_wijk_key.sql').run_query_for_each_municipality('Making buurt to wijk key...')
+        # QueryRunner('sql/_common/buurt_and_wijk_key_delete_duplicates.sql').run_query() 
+        
+        # # add wk_code to tables 
+        # QueryRunner('sql/data_processing/bag/match_admin_boundaries_bagvbo_wijk.sql').run_query_for_each_municipality('Matching bag vbo to admin boundaries (from cbs_wijk_2012) ...') # finished running
+        # QueryRunner('sql/data_processing/bag/match_admin_boundaries_bagpand_wijk.sql').run_query_for_each_municipality('Matching bag pand to admin boundaries (from cbs_wijk_2012) ...')
+        # QueryRunner('sql/data_processing/bag/match_admin_boundaries_housinginuse_wijk.sql').run_query_for_each_municipality('Matching housinginuse to admin boundaries (from cbs_wijk_2012) ...')
+        # QueryRunner('sql/data_processing/bag/match_admin_boundaries_housingnl_wijk.sql').run_query_for_each_municipality('Matching housingnl to admin boundaries (from cbs_wijk_2012) ...')
 
+        None 
 
 
 

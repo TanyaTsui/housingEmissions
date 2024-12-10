@@ -15,9 +15,9 @@ WHERE
 	AND municipality = 'Delft'; 
 
 INSERT INTO housing_nl (
-	function, sqm, n_units, id_pand, geometry, build_year, status, 
+	function, sqm, n_units, id_pand, build_year, status, 
 	document_date, document_number, registration_start, registration_end, 
-	geom, geom_28992, neighborhood_code, wk_code, municipality
+	pand_geom, bu_code, wk_code, municipality
 )
 
 -- Insert the result of the query into the table
@@ -36,9 +36,9 @@ vbo_ordered AS (
 ), 
 transformed_units AS (
 	SELECT 
-		id_vbo, id_num, id_pand, geometry, function, sqm, status, 
+		id_vbo, id_num, id_pand, function, sqm, status, 
 		document_date, document_number, registration_start, registration_end, 
-		geom, geom_28992, neighborhood_code, wk_code, municipality
+		vbo_geom, bu_code, wk_code, municipality
 	FROM vbo_ordered
 	WHERE 
 	    function = 'woonfunctie'
@@ -61,11 +61,11 @@ buildings_municipality AS (
 buildings_transformed_withinfo AS (
 	SELECT 
 		'woonfunctie' AS function, t.sqm, t.n_units, t.id_pand, 
-		m.geometry, m.build_year, 
+		m.build_year, 
 		'transformation - function change' AS status, 
 		m.document_date, m.document_number, 
 		m.registration_start, m.registration_end, 
-		m.geom, m.geom_28992, m.neighborhood_code, m.wk_code, m.municipality
+		m.pand_geom, m.bu_code, m.wk_code, m.municipality
 	FROM buildings_transformed t 
 	LEFT JOIN LATERAL (
 	    SELECT * 

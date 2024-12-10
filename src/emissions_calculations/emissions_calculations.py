@@ -15,7 +15,7 @@ class EmissionsCalculator():
         print(f'\nCalculating housing emissions for years {self.start_year} t/m {self.end_year} ...')
         
         # create table if it doesn't already exist
-        QueryRunner('sql/create_table/emissions_all_wijk.sql').run_query() 
+        QueryRunner('sql/create_table/emissions_all_buurt.sql').run_query() 
         
         self.query = self.make_query()
         self.n_placeholders = self.query.count('%s')
@@ -29,18 +29,19 @@ class EmissionsCalculator():
 
     def make_query(self): 
         return f''' 
-            DELETE FROM emissions_all_wijk WHERE municipality = %s;
-            INSERT INTO emissions_all_wijk (
-                municipality, wk_code, year, construction, renovation, transformation, demolition, 
-                population, n_households, n_homes, gas_m3, elec_kwh, av_p_stadverw, av_woz, 
-                embodied_kg, operational_kg, geom
+            DELETE FROM emissions_all_buurt WHERE municipality = %s;
+            INSERT INTO emissions_all_buurt (
+                municipality, wk_code, bu_code, bu_geom, year, 
+                construction, renovation, transformation, demolition, 
+                population, n_homes, tot_gas_m3, tot_elec_kwh, woz, 
+                embodied_kg, operational_kg
             )
 
             -- wijk level construction events (input for embodied emissions) 
             WITH construction_events_raw AS (
                 SELECT 
                     CASE
-                        WHEN status = 'Bouw gestart' THEN LEFT(registration_end, 4)::INTEGER
+                        WHEN registration_end IS NOT NULL THEN LEFT(registration_end, 4)::INTEGER
                         ELSE LEFT(registration_start, 4)::INTEGER
                     END AS year, 
                     CASE
@@ -49,13 +50,13 @@ class EmissionsCalculator():
                         WHEN status IN ('renovation - post2020', 'renovation - pre2020') THEN 'renovation'
                         WHEN status IN ('transformation - adding units', 'transformation - function change') THEN 'transformation'
                     END AS status, 
-                    id_pand, n_units, sqm, neighborhood_code, wk_code, municipality 
+                    id_pand, n_units, sqm, bu_code, wk_code, municipality 
                 FROM housing_nl
                 WHERE municipality = %s
             ), 
-            construction_events_wijk AS (
+            construction_events_buurt AS (
                 SELECT 
-                    municipality, wk_code, year,
+                    municipality, wk_code, bu_code, year,
                     SUM(CASE WHEN status = 'construction' THEN sqm ELSE 0 END) AS construction,
                     SUM(CASE WHEN status = 'renovation' THEN sqm ELSE 0 END) AS renovation,
                     SUM(CASE WHEN status = 'transformation' THEN sqm ELSE 0 END) AS transformation,
@@ -63,30 +64,36 @@ class EmissionsCalculator():
                 FROM construction_events_raw
                 WHERE year >= {self.start_year}
                     AND year <= {self.end_year}
-                GROUP BY municipality, wk_code, year
+                GROUP BY municipality, wk_code, bu_code, year
             ), 
 
             -- wijk level energy use (input for operational emissions) 
-            energy_wijk AS (
-                SELECT * FROM cbs_map_all_wijk WHERE municipality = %s
+            energy_buurt AS (
+                SELECT * FROM cbs_map_all_buurt WHERE municipality = %s
             ), 
 
             -- calculate emissions 
-            wijk_stats AS (
-                SELECT a.*, b.population, b.n_households, b.n_homes, b.gas_m3, b.elec_kwh, b.av_p_stadverw, b.av_woz
-                FROM construction_events_wijk a 
-                JOIN energy_wijk b 
-                ON a.year = b.year AND a.wk_code = b.wk_code 
+            buurt_stats AS (
+                SELECT 
+                    b.municipality, b.wk_code, b.bu_code, b.year, 
+                    COALESCE(a.construction, 0) AS construction, 
+                    COALESCE(a.renovation, 0) AS renovation, 
+                    COALESCE(a.transformation, 0) AS transformation, 
+                    COALESCE(a.demolition, 0) AS demolition, 
+                    b.bu_geom, b.population, b.n_homes, b.tot_gas_m3, b.tot_elec_kwh, b.woz
+                FROM construction_events_buurt a 
+                FULL JOIN energy_buurt b 
+                ON a.year = b.year AND a.bu_code = b.bu_code 
             ), 
-            emissions_wijk AS (
-                SELECT a.*, 
-                    a.construction * 316 + a.renovation * 126 + a.transformation * 126 + a.demolition * 126 AS embodied_kg, 
-                    a.gas_m3 * 1.9 + elec_kwh * 0.45 AS operational_kg, 
-                    b.geom
-                FROM wijk_stats a 
-                LEFT JOIN cbs_wijk_2012 b 
-                ON a.wk_code = b.wk_code
+            emissions_buurt AS (
+                SELECT 
+                    municipality, wk_code, bu_code, bu_geom, year, 
+                    construction, renovation, transformation, demolition, 
+                    population, n_homes, tot_gas_m3, tot_elec_kwh, woz, 
+                    construction * 316 + renovation * 126 + transformation * 126 + demolition * 126 AS embodied_kg, 
+                    tot_gas_m3 * 1.9 + tot_elec_kwh * 0.45 AS operational_kg
+                FROM buurt_stats 
             )
 
-            SELECT * FROM emissions_wijk 
+            SELECT * FROM emissions_buurt 
             ''' 

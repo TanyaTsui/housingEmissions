@@ -1,7 +1,8 @@
 -- delete and insert rows into cbs_map_all_buurt, the following query: 
 DELETE FROM cbs_map_all_buurt WHERE municipality = 'Delft';  
 INSERT INTO cbs_map_all_buurt (
-	municipality, wk_code, bu_code, bu_geom, year, n_units, population, woz, tot_gas_m3, tot_elec_kwh
+	municipality, wk_code, bu_code, bu_geom, year, 
+	n_units, n_homes, population, woz, tot_gas_m3, tot_elec_kwh
 )
 
 -- select housinginuse (now with cbs data) in Delft, in year 2013 (and other years as well)
@@ -12,7 +13,9 @@ WITH building_stats AS (
 -- group by bu_code to get buurt-level data 
 buurt2022_stats AS (
 	SELECT municipality, bu_code, year, 
-		SUM(n_units) AS n_units, ROUND(SUM(population)) AS population, ROUND(AVG(woz)) AS woz, 
+		SUM(n_units) AS n_units, 
+		ROUND(SUM(n_homes)) AS n_homes, 
+		ROUND(SUM(population)) AS population, ROUND(AVG(woz)) AS woz, 
 		ROUND(SUM(tot_gas_m3)) AS tot_gas_m3, ROUND(SUM(tot_elec_kwh)) AS tot_elec_kwh
 	FROM building_stats 
 	GROUP BY municipality, bu_code, year 
@@ -33,6 +36,6 @@ buurt_stats_and_geom AS (
 
 SELECT  
 	municipality, wk_code, bu_code, bu_geom, year, 
-	n_units, population, woz, tot_gas_m3, tot_elec_kwh
+	n_units, n_homes, population, woz, tot_gas_m3, tot_elec_kwh
 FROM buurt_stats_and_geom 
 

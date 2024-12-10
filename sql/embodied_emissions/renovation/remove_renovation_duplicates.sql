@@ -13,8 +13,8 @@ duplicates AS (
             PARTITION BY id_pand, LEFT(registration_start, 4)
             ORDER BY 
                 CASE 
-                    WHEN status = 'transformation - adding units' THEN 1
-                    WHEN status = 'transformation - function change' THEN 2
+                    WHEN status = 'transformation - function change' THEN 1
+					WHEN status = 'transformation - adding units' THEN 2
                     WHEN status = 'renovation - post2020' THEN 3
                     WHEN status = 'renovation - pre2020' THEN 4
                 END

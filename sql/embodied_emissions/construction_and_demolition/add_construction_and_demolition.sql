@@ -4,9 +4,9 @@ WHERE
 	AND status IN ('Bouw gestart', 'Pand gesloopt');
 
 INSERT INTO housing_nl (
-    function, sqm, n_units, id_pand, geometry, build_year, status, 
-    document_date, document_number, registration_start, registration_end, 
-    geom, geom_28992, neighborhood_code, wk_code, municipality
+    function, sqm, n_units, id_pand, build_year, status, 
+	document_date, document_number, registration_start, registration_end, 
+	pand_geom, bu_code, wk_code, municipality
 )
     
 -- select relevant units and buildings from BAG
@@ -41,10 +41,10 @@ housing_stats AS (
 housing_final AS (
     SELECT 
         u.function, u.sqm, u.n_units, 
-        b.id_pand, b.geometry, b.build_year, b.status, 
+        b.id_pand, b.build_year, b.status, 
         b.document_date, b.document_number, 
         b.registration_start, b.registration_end, 
-        b.geom, b.geom_28992, b.neighborhood_code, b.wk_code, 
+        b.pand_geom, b.bu_code, b.wk_code, 
         b.municipality
     FROM buildings b 
     JOIN housing_stats u 
