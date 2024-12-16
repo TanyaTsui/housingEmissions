@@ -3,7 +3,7 @@ WITH buurt2022_municipality AS (
 	SELECT "GM_NAAM" AS municipality, "WK_CODE" AS wk_code, 
 		"BU_CODE" AS bu_code, geometry AS bu_geom
 	FROM cbs_map_2022 
-	WHERE "WATER" = 'NEE' AND "GM_NAAM" = 'Delft'
+	WHERE "WATER" = 'NEE' AND "GM_NAAM" = 'Delft' 
 ), 
 bag_vbo_with_admin_boundaries AS (
 	SELECT a.id_vbo, a.id_num, a.id_pand, a.function, a.sqm, a.status, 
@@ -32,5 +32,4 @@ SET
     bu_geom = f.bu_geom
 FROM bag_vbo_final f
 WHERE t.id_vbo = f.id_vbo
-	AND t.registration_start = f.registration_start
-	AND t.registration_end = f.registration_end; 
+	AND t.document_date = f.document_date; 

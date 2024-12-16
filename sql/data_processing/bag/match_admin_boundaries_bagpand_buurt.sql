@@ -33,4 +33,4 @@ SET
 FROM bag_pand_final f
 WHERE t.id_pand = f.id_pand
 	AND t.status = f.status 
-	AND t.registration_start = f.registration_start; 
+	AND t.document_date = f.document_date; 

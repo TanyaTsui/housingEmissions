@@ -23,7 +23,7 @@ INSERT INTO housing_nl (
 )
 
 -- Insert the result of the query into the table
-WITH bag_vbo_sample AS (
+WITH bag_vbo_sample_with_duplicates AS (
     SELECT * 
     FROM 
         bag_vbo
@@ -32,6 +32,11 @@ WITH bag_vbo_sample AS (
         AND status = 'Verblijfsobject gevormd'
         AND function = 'woonfunctie'
 		AND sqm::INTEGER < 9999
+), 
+bag_vbo_sample AS (
+	SELECT DISTINCT ON (id_vbo) * 
+	FROM bag_vbo_sample_with_duplicates
+	ORDER BY id_vbo, document_date
 ), 
 bag_pand_sample AS (
     SELECT * 
@@ -98,4 +103,5 @@ units_added_withinfo_filtered AS (
 )
 
 SELECT *
-FROM units_added_withinfo_filtered WHERE n_units IS NOT NULL 
+FROM units_added_withinfo_filtered 
+WHERE n_units IS NOT NULL 

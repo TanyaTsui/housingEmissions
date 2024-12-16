@@ -4,7 +4,7 @@ class AdminBoundaryAdder():
     def run(self):
         # QueryRunner('sql/data_processing/bag/add_admin_columns.sql').run_query('Adding admin boundary columns to bag...')
         # QueryRunner('sql/data_processing/bag/create_index_bag.sql').run_query('Creating index for bag...')
-        QueryRunner('sql/data_processing/bag/match_admin_boundaries_bagvbo_buurt.sql').run_query_for_each_municipality('Adding 2022 admin boundaries to bag_vbo (from cbs_map_2022)...')
+        # QueryRunner('sql/data_processing/bag/match_admin_boundaries_bagvbo_buurt.sql').run_query_for_each_municipality('Adding 2022 admin boundaries to bag_vbo (from cbs_map_2022)...')
         QueryRunner('sql/data_processing/bag/match_admin_boundaries_bagpand_buurt.sql').run_query_for_each_municipality('Adding 2022 admin boundaries to bag_pand (from cbs_map_2022)...')
         None 
 

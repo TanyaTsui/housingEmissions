@@ -1,37 +1,37 @@
 DELETE FROM housing_nl_s2
-WHERE municipality = 'Amsterdam';
+WHERE municipality = 'Delft';
 
 INSERT INTO housing_nl_s2 (
-	status, function, sqm, id_pand, build_year, document_date, document_number, 
-	registration_start, registration_end, geom, geom_28992, 
-	neighborhood_code, wk_code, wk_geom, municipality
+	municipality, wk_code, bu_code, id_pand, pand_geom, 
+	status, function, sqm, build_year, document_date, document_number, 
+	registration_start, registration_end
 )
 
 -- get demolitions and constructions in area 
 WITH demolitions AS (
-	SELECT * FROM demolished_buildings_nl 
-	WHERE municipality = 'Amsterdam' 
+	SELECT * FROM housing_nl 
+	WHERE municipality = 'Delft' 
+		AND status = 'Pand gesloopt'
 ), 
 constructions AS (
 	SELECT * FROM housing_nl 
-	WHERE municipality = 'Amsterdam'
+	WHERE municipality = 'Delft'
 		AND status = 'Bouw gestart'
 ), 
 
 -- get replacement constructions (constructions that did intersect with demolitions)
 constructions_replacement_raw AS (
 	SELECT 
-		c.sqm AS c_sqm, d.sqm AS d_sqm, 
-		d.geom AS d_geom, d.geom_28992 AS d_geom_28992, 
-		ST_Area(d.geom_28992) AS d_footprint, ST_Area(c.geom_28992) AS c_footprint, 
-		ST_Area(ST_Intersection(c.geom_28992, d.geom_28992)) / ST_Area(d.geom_28992) * d.sqm AS replaced_sqm,
-		ST_Area(ST_Intersection(c.geom_28992, d.geom_28992)) / ST_Area(c.geom_28992) * c.sqm AS new_sqm,
-		ST_Transform(ST_Intersection(c.geom_28992, d.geom_28992), 4326) AS intersection, 
+		c.sqm AS c_sqm, d.sqm AS d_sqm, d.pand_geom AS d_geom, 
+		ST_Area(d.pand_geom) AS d_footprint, ST_Area(c.pand_geom) AS c_footprint, 
+		ST_Area(ST_Intersection(c.pand_geom, d.pand_geom)) / ST_Area(d.pand_geom) * d.sqm AS replaced_sqm,
+		ST_Area(ST_Intersection(c.pand_geom, d.pand_geom)) / ST_Area(c.pand_geom) * c.sqm AS new_sqm,
+		ST_Transform(ST_Intersection(c.pand_geom, d.pand_geom), 4326) AS intersection, 
 		c.*
 	FROM constructions c 
 	JOIN demolitions d 
-	ON c.neighborhood_code = d.neighborhood_code
-		AND ST_Intersects(c.geom_28992, d.geom_28992)
+	ON c.bu_code = d.bu_code
+		AND ST_Intersects(c.pand_geom, d.pand_geom)
 ), 
 constructions_replacement AS (
 	SELECT id_pand, 
@@ -39,7 +39,7 @@ constructions_replacement AS (
 		MIN(c_sqm) AS c_sqm, SUM(d_sqm) AS d_sqm, 
 		MIN(c_footprint) AS c_footprint, SUM(d_footprint) AS d_footprint, 
 		COUNT(d_sqm) AS count, 
-		ST_SetSRID(ST_GeomFromText(MIN(ST_AsText(geom))), 4326) AS geom
+		ST_SetSRID(ST_GeomFromText(MIN(ST_AsText(pand_geom))), 4326) AS pand_geom
 	FROM constructions_replacement_raw
 	GROUP BY id_pand 
 ), 
@@ -53,16 +53,16 @@ renovations AS (
 housing_reality AS (
 	SELECT * 
 	FROM housing_nl 
-	WHERE municipality = 'Amsterdam' 
+	WHERE municipality = 'Delft' 
 ), 
 
 -- replace constructions with renovations (when applicable)
 housing_s1_renovations AS (
 	SELECT 
+		hr.municipality, hr.wk_code, hr.bu_code, hr.id_pand, hr.pand_geom, 
 	    COALESCE(hs.status, hr.status) AS status, -- Use status from housing_s1 if exists, else keep original status
-		hr.function, hr.sqm, hr.id_pand, hr.build_year, 
-		hr.document_date, hr.document_number, hr.registration_start, hr.registration_end, hr.geom, hr.geom_28992, 
-		hr.neighborhood_code, hr.neighborhood, hr.municipality, hr.province
+		hr.function, hr.sqm, hr.build_year, 
+		hr.document_date, hr.document_number, hr.registration_start, hr.registration_end
 	FROM housing_reality hr
 	LEFT JOIN renovations hs
 	ON hr.id_pand = hs.id_pand
@@ -76,8 +76,8 @@ demolitions_to_delete AS (
 	SELECT h.*
 	FROM housing_s1_renovations h 
 	JOIN renovations_s1 r 
-	ON h.neighborhood_code = r.neighborhood_code 
-		AND ST_intersects(h.geom_28992, r.geom_28992)
+	ON h.bu_code = r.bu_code 
+		AND ST_intersects(h.pand_geom, r.pand_geom)
 	WHERE h.status = 'Pand gesloopt'
 ), 
 housing_s1 AS (
@@ -88,12 +88,4 @@ housing_s1 AS (
 	        AND id_pand IN (SELECT id_pand FROM demolitions_to_delete)
 	    )
 )
-
--- add wk_code and wk_geom (for future aggregation)
-SELECT h.status, h.function, h.sqm, h.id_pand, h.build_year, 
-	h.document_date, h.document_number, h.registration_start, h.registration_end, 
-	h.geom, h.geom_28992, h.neighborhood_code, 
-	k.wk_code, k.wk_geom, k.municipality
-FROM housing_s1 h
-LEFT JOIN key_buurt2022_to_wijk2012 k
-ON h.neighborhood_code = k.neighborhood_code 
+SELECT * FROM housing_s1

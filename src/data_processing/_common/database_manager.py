@@ -55,8 +55,8 @@ class DatabaseManager:
         cursor = conn.cursor()
         cursor.execute('''SELECT DISTINCT "GM_NAAM" FROM cbs_map_2022 WHERE "WATER" = 'NEE';''')
         municipalities_list = cursor.fetchall()
-        # return [municipality[0] for municipality in municipalities_list]
-        return ['Delft', ''''s-Gravenhage'''] # for testing
+        return [municipality[0] for municipality in municipalities_list]
+        # return ['Delft'] # , ''''s-Gravenhage'''] # for testing
     
     def add_file_to_db(self, gpkg_file_path):
         db_params = self.params_manager.get_database_params()

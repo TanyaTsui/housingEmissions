@@ -2,7 +2,7 @@ from src.data_processing.cbs.cbs_data_processor import CBSDataProcessor, CBSData
 from src.emissions_calculations.embodied_emissions_pipeline import AdminBoundaryAdder, ConstructionActivityInfoAdder
 from src.emissions_calculations.emissions_calculations import EmissionsCalculator
 from src.data_processing.bag.housing_snapshot_maker import HousingSnapshotMaker, HousingSnapshotBuurtStatsAdder
-from src.scenarios.scenarios_emissions import s1EnergyEfficiency, s2CircularEconomy
+from src.scenarios.scenarios_emissions import s1EnergyEfficiency, s2CircularEconomy, s3SpaceEfficiency
 
 import time 
 
@@ -14,14 +14,14 @@ if __name__ == '__main__':
     end_year = 2021
 
     # DATA HARMONISATION - ALREADY RAN, NO NEED TO RUN AGAIN 
-    # AdminBoundaryAdder().run() # add 2022 admin boundaries to bag_pand and bag_vbo - this takes a long time. 1-2% of data is lost in the process.
-    # ConstructionActivityInfoAdder().run() # add construction, renovation, transformation, and demolition data to housing_nl
+    # # # # # AdminBoundaryAdder().run() # add 2022 admin boundaries to bag_pand and bag_vbo - this takes a long time. 1-2% of data is lost in the process.
+    # # # # # ConstructionActivityInfoAdder().run() # add construction, renovation, transformation, and demolition data to housing_nl
     # # # # # HousingSnapshotMaker(start_year, end_year).run() # create housing_inuse_2012_2021
     # # # # # HousingSnapshotBuurtStatsAdder(start_year, end_year).run() # add buurt-level stats to housing_inuse_2012_2021. Takes ~7 hours to run
     # # # # # CBSDataHarmoniser().run() # harmonise cbs data using buurt-level geoms, aggregated to cbs_map_all_buurt
 
     # EXISTING EMISSIONS CALCULATIONS 
-    EmissionsCalculator(start_year, end_year).run() # calculate embodied and operational emissions 
+    # EmissionsCalculator(start_year, end_year).run() # calculate embodied and operational emissions 
 
     # STRATEGY ONE - ENERGY EFFICIENCY (minimize energy use)
     # s1EnergyEfficiency(start_year, end_year).run()
@@ -30,6 +30,7 @@ if __name__ == '__main__':
     # s2CircularEconomy().run()
 
     # STRATEGY THREE - SPACE EFFICIENCY (minimize sqm)
+    s3SpaceEfficiency().run() 
     
     end_time = time.time()
     print(f"\nTime taken: {round((end_time - start_time)/60, 2)} minutes")

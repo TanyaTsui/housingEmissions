@@ -75,7 +75,10 @@ class EmissionsCalculator():
             -- calculate emissions 
             buurt_stats AS (
                 SELECT 
-                    b.municipality, b.wk_code, b.bu_code, b.year, 
+                    COALESCE(a.municipality, b.municipality) AS municipality,
+                    COALESCE(a.wk_code, b.wk_code) AS wk_code,
+                    COALESCE(a.bu_code, b.bu_code) AS bu_code,
+                    COALESCE(a.year, b.year) AS year, 
                     COALESCE(a.construction, 0) AS construction, 
                     COALESCE(a.renovation, 0) AS renovation, 
                     COALESCE(a.transformation, 0) AS transformation, 
@@ -90,7 +93,7 @@ class EmissionsCalculator():
                     municipality, wk_code, bu_code, bu_geom, year, 
                     construction, renovation, transformation, demolition, 
                     population, n_homes, tot_gas_m3, tot_elec_kwh, woz, 
-                    construction * 316 + renovation * 126 + transformation * 126 + demolition * 126 AS embodied_kg, 
+                    construction * 316 + renovation * 126 + transformation * 126 + demolition * 77 AS embodied_kg, 
                     tot_gas_m3 * 1.9 + tot_elec_kwh * 0.45 AS operational_kg
                 FROM buurt_stats 
             )
