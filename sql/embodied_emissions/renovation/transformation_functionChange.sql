@@ -27,6 +27,7 @@ WITH bag_vbo_sample AS (
 	WHERE 
 		municipality = 'Delft'
 		AND status = 'Verblijfsobject in gebruik'
+		AND sqm::INTEGER < 9999
 ), 
 vbo_ordered AS (
     SELECT 

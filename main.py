@@ -27,10 +27,10 @@ if __name__ == '__main__':
     # s1EnergyEfficiency(start_year, end_year).run()
 
     # STRATEGY TWO - MATERIAL EFFICIENCY (minimize materials) 
-    # s2CircularEconomy().run()
+    s2CircularEconomy(start_year, end_year).run()
 
     # STRATEGY THREE - SPACE EFFICIENCY (minimize sqm)
-    s3SpaceEfficiency().run() 
+    # s3SpaceEfficiency().run() 
     
     end_time = time.time()
     print(f"\nTime taken: {round((end_time - start_time)/60, 2)} minutes")

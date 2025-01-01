@@ -1,3 +1,14 @@
+DELETE FROM emissions_all_buurt_s3 WHERE municipality = 'Delft';
+INSERT INTO emissions_all_buurt_s3 (
+    year, municipality, wk_code, bu_code, bu_geom,
+    embodied_kg_s0, embodied_kg_s1, embodied_kg_s2, embodied_kg_s3,
+    operational_kg_s0, operational_kg_s1, operational_kg_s2, operational_kg_s3,
+    construction, construction_s3, transformation, transformation_s3,
+    renovation, demolition, inuse, inuse_s3,
+    tot_gas_m3, tot_gas_m3_s3, tot_elec_kwh, tot_elec_kwh_s3,
+    population, population_change, woz, n_homes
+)
+
 WITH emissions_all_buurt_without_population AS (
 	SELECT  
 		CASE 
@@ -100,6 +111,15 @@ s3_inuse AS (
 		* 
 	FROM values_yearbefore
 ), 
+s3_inuse_adjusted AS (
+	SELECT 
+		CASE 
+			WHEN inuse_s3 > inuse THEN inuse 
+			ELSE inuse_s3
+		END AS inuse_s3, 
+	*
+	FROM s3_inuse_adjusted
+)
 
 -- calculate energy usage (gas and electricity) for s3 
 s3_energy AS (
@@ -107,7 +127,7 @@ s3_energy AS (
 		ROUND(tot_gas_m3 / inuse * inuse_s3) AS tot_gas_m3_s3, 
 		ROUND(tot_elec_kwh / inuse * inuse_s3) AS tot_elec_kwh_s3, 
 		* 
-	FROM s3_inuse
+	FROM s3_inuse_adjusted
 ), 
 
 -- calculate operational emissions for s3 
