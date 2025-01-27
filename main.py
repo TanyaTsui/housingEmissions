@@ -30,7 +30,7 @@ if __name__ == '__main__':
     s2CircularEconomy(start_year, end_year).run()
 
     # STRATEGY THREE - SPACE EFFICIENCY (minimize sqm)
-    # s3SpaceEfficiency().run() 
+    # s3SpaceEfficiency(start_year, end_year).run() 
     
     end_time = time.time()
     print(f"\nTime taken: {round((end_time - start_time)/60, 2)} minutes")

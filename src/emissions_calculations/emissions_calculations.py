@@ -37,7 +37,7 @@ class EmissionsCalculator():
                 embodied_kg, operational_kg
             )
 
-            -- wijk level construction events (input for embodied emissions) 
+            -- buurt level construction events (input for embodied emissions) 
             WITH construction_events_raw AS (
                 SELECT 
                     CASE
@@ -67,10 +67,16 @@ class EmissionsCalculator():
                 GROUP BY municipality, wk_code, bu_code, year
             ), 
 
-            -- wijk level energy use (input for operational emissions) 
+            -- buurt level energy use (input for operational emissions) 
             energy_buurt AS (
                 SELECT * FROM cbs_map_all_buurt WHERE municipality = %s
             ), 
+            inuse_buurt AS (
+                SELECT year, bu_code, SUM(sqm) AS inuse
+                FROM housing_inuse_2012_2021 
+                WHERE municipality = %s
+                GROUP BY year, bu_code 
+            )
 
             -- calculate emissions 
             buurt_stats AS (

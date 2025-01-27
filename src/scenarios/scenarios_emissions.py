@@ -43,7 +43,7 @@ class s1EnergyEfficiency():
                 SELECT * FROM cbs_map_all_buurt WHERE municipality = %s AND year = {self.year}
             ), 
             housing_inuse AS (
-                SELECT * FROM housing_inuse_{self.start_year}_{self.end_year} WHERE municipality = %s AND year = {self.year}
+                SELECT * FROM housing_inuse_2012_2021 WHERE municipality = %s AND year = {self.year}
             ), 
             housing_inuse_buurt AS (
                 SELECT municipality, bu_code, year, SUM(sqm) AS sqm, SUM(n_units) AS n_units
@@ -126,7 +126,7 @@ class s1EnergyEfficiency():
                     COALESCE(a.bu_code, b.bu_code) AS bu_code, b.bu_geom, 
                     a.id_pand, a.year, a.status, a.sqm, b.n_homes, b.population, b.woz, 
                 
-                    a.tot_gas_m3 AS gas_m3_s0,
+                    -- a.tot_gas_m3 AS gas_m3_s0, -- not needed, this is already in emissions_all_buurt
                     CASE
                         WHEN status = 'Pand in gebruik' THEN a.tot_gas_m3 
                         WHEN status = 'Pand in gebruik - low energy' AND a.sqm * 5 < a.tot_gas_m3  THEN a.sqm * 5
@@ -134,7 +134,7 @@ class s1EnergyEfficiency():
                         ELSE 0 
                     END AS gas_m3_s1,
                 
-                    a.tot_elec_kwh AS electricity_kwh_s0, 
+                    -- a.tot_elec_kwh AS electricity_kwh_s0, 
                     CASE 
                         WHEN status IN ('Pand in gebruik', 'Pand in gebruik - low energy') THEN a.tot_elec_kwh 
                         ELSE 0 
@@ -147,9 +147,9 @@ class s1EnergyEfficiency():
                 SELECT 
                     municipality, wk_code, bu_code, bu_geom, id_pand, 
                     year, status, sqm, n_homes, population, woz,
-                
-                    gas_m3_s0, gas_m3_s1, electricity_kwh_s0, electricity_kwh_s1, 
-                    ROUND(gas_m3_s0 * 1.9 + electricity_kwh_s0 * 0.45) AS operational_kg_s0, 
+                    -- gas_m3_s0, electricity_kwh_s0, 
+                    -- ROUND(gas_m3_s0 * 1.9 + electricity_kwh_s0 * 0.45) AS operational_kg_s0, 	
+                    gas_m3_s1, electricity_kwh_s1, 
                     ROUND(gas_m3_s1 * 1.9 + electricity_kwh_s1 * 0.45) AS operational_kg_s1, 
                     
                     CASE 
@@ -188,24 +188,44 @@ class s1EnergyEfficiency():
                     END AS demolition, *
                 FROM emissions_per_building 
             ), 
-            final_selection AS (
+            s1_results AS (
                 SELECT {self.year} AS year, municipality, wk_code, bu_code, bu_geom,  
                     ROUND(AVG(population)) AS population, ROUND(AVG(woz)) AS woz, 
                     
                     SUM(n_homes) AS n_homes, SUM(inuse) AS inuse, SUM(construction) AS construction, SUM(transformation) AS transformation, 
                     SUM(renovation) AS renovation, SUM(demolition) AS demolition, 
                     
-                    ROUND(SUM(gas_m3_s0)) AS gas_m3_s0, ROUND(SUM(gas_m3_s1)) AS gas_m3_s1, 
-                    ROUND(SUM(electricity_kwh_s0)) AS electricity_kwh_s0, ROUND(SUM(electricity_kwh_s1)) AS electricity_kwh_s1, 
-                    
-                    SUM(operational_kg_s0) AS operational_kg_s0, SUM(operational_kg_s1) AS operational_kg_s1, 
+                    -- ROUND(SUM(gas_m3_s0)) AS gas_m3_s0, 
+                    ROUND(SUM(gas_m3_s1)) AS gas_m3_s1, 
+                    -- ROUND(SUM(electricity_kwh_s0)) AS electricity_kwh_s0, 
+                    ROUND(SUM(electricity_kwh_s1)) AS electricity_kwh_s1, 
+                
+                    -- SUM(operational_kg_s0) AS operational_kg_s0, 
+                    SUM(operational_kg_s1) AS operational_kg_s1, 
                     SUM(embodied_kg_s0) AS embodied_kg_s0, SUM(embodied_kg_s1) AS embodied_kg_s1
                     
                 FROM stats_per_building
                 GROUP BY municipality, wk_code, bu_code, bu_geom
+            ), 
+            s0_results AS (
+                SELECT bu_code, 
+                    tot_gas_m3 AS gas_m3_s0, 
+                    tot_elec_kwh AS electricity_kwh_s0, 
+                    ROUND(embodied_kg) AS embodied_kg_s0, 
+                    ROUND(operational_kg) AS operational_kg_s0 
+                FROM emissions_all_buurt 
+                WHERE municipality = %s AND year = {self.year}
             )
 
-            SELECT * FROM final_selection
+            SELECT 
+                a.year, a.municipality, a.wk_code, a.bu_code, a.bu_geom, 
+                a.population, a.woz, a.n_homes, a.inuse, 
+                a.construction, a.transformation, a.renovation, a.demolition, 
+                b.gas_m3_s0, a.gas_m3_s1, b.electricity_kwh_s0, a.electricity_kwh_s1, 
+                b.operational_kg_s0, a.operational_kg_s1, b.embodied_kg_s0, a.embodied_kg_s1	
+            FROM s1_results a 
+            LEFT JOIN s0_results b
+            ON a.bu_code = b.bu_code 
             '''
 
 class s2CircularEconomy(): 
@@ -221,13 +241,14 @@ class s2CircularEconomy():
         print('\n\nCalculating emissions for scenario 2 - circular economy ...')
 
         # create and fill housing_nl_s2 table
-        # QueryRunner('sql/create_table/housing_nl_s2.sql').run_query()
-        # QueryRunner('sql/s1_circular_economy/renovation_suitability.sql').run_query_for_each_municipality('Adding to housing_nl_s2...')
+        QueryRunner('sql/create_table/housing_nl_s2.sql').run_query()
+        QueryRunner('sql/s2_circular_economy/renovation_suitability.sql').run_query_for_each_municipality('Adding to housing_nl_s2...')
 
         # create and fill emissions_all_buurt_s2 table
         QueryRunner('sql/create_table/emissions_all_buurt_s2.sql').run_query()
+        # for year in [2012]: 
         for year in range(self.start_year, self.end_year + 1):
-            self.year = year
+            self.year = year     
             for i, municipality in enumerate(self.municipalities): 
                 query = self.make_query() 
                 n_placeholders = QueryTermReplacer().counter(query)
@@ -244,7 +265,8 @@ class s2CircularEconomy():
 
             INSERT INTO emissions_all_buurt_s2 (
                 year, municipality, wk_code, bu_code, bu_geom,
-                construction, demolition, transformation, renovation,
+                construction, construction_s2, demolition, demolition_s2, 
+                transformation, transformation_s2, renovation, renovation_s2, 
                 operational_kg_s0, operational_kg_s1, operational_kg_s2,
                 embodied_kg_s0, embodied_kg_s1, embodied_kg_s2,
                 inuse, gas_m3_s0, gas_m3_s1, gas_m3_s2,
@@ -411,21 +433,223 @@ class s2CircularEconomy():
             emissions_other_scenarios AS (
                 SELECT * FROM emissions_all_buurt_s1
                 WHERE municipality = %s AND year = {self.year}
+            ), 
+            final_table AS (
+                SELECT a.year, b.municipality, b.wk_code, b.bu_code, b.bu_geom, 
+                    b.construction, a.construction AS construction_s2, 
+                    b.demolition, a.demolition AS demolition_s2, 
+                    b.transformation, a.transformation AS transformation_s2, 
+                    b.renovation, a.renovation AS renovation_s2, 
+                    b.operational_kg_s0, b.operational_kg_s1, a.operational_kg_s2, 
+                    b.embodied_kg_s0, b.embodied_kg_s1, a.embodied_kg_s2, 
+                    a.inuse, 
+                    b.gas_m3_s0, b.gas_m3_s1, ROUND(a.tot_gas_m3) AS gas_m3_s2, 
+                    b.electricity_kwh_s0, b.electricity_kwh_s1, ROUND(a.tot_elec_kwh) AS electricity_kwh_s2, 
+                    b.n_homes, b.population, b.woz 
+                FROM emissions_per_buurt a 
+                FULL JOIN emissions_other_scenarios b 
+                ON a.bu_code = b.bu_code 
             )
-            SELECT a.year, b.municipality, b.wk_code, b.bu_code, b.bu_geom, 
-                a.construction, a.demolition, a.transformation, a.renovation, a.inuse, 
-                b.gas_m3_s0, b.gas_m3_s1, ROUND(a.tot_gas_m3) AS gas_m3_s2, 
-                b.electricity_kwh_s0, b.electricity_kwh_s1, ROUND(a.tot_elec_kwh) AS electricity_kwh_s2, 
-                b.operational_kg_s0, b.operational_kg_s1, a.operational_kg_s2, 
-                b.embodied_kg_s0, b.embodied_kg_s1, a.embodied_kg_s2, 
-                b.n_homes, b.population, b.woz 
-            FROM emissions_per_buurt a 
-            FULL JOIN emissions_other_scenarios b 
-            ON a.bu_code = b.bu_code 
+
+            SELECT * FROM final_table 
             '''
 
 class s3SpaceEfficiency():
+    def __init__(self, start_year, end_year):
+            self.db_manager = DatabaseManager()
+            self.conn = self.db_manager.connect()
+            self.cursor = self.conn.cursor()
+            self.municipalities = self.db_manager.get_municipalities_list()
+            self.start_year = start_year
+            self.end_year = end_year
+
     def run(self): 
         print('\n\nCalculating emissions for scenario 3 - space efficiency ...')
         QueryRunner('sql/create_table/emissions_all_buurt_s3.sql').run_query()
-        QueryRunner('sql/s3_space_efficiency/space_efficiency.sql').run_query_for_each_municipality('Adding to emissions_all_buurt_s3...') 
+        for year in range(self.start_year + 1, self.end_year + 1):
+            self.year = year
+            for i, municipality in enumerate(self.municipalities): 
+                query = self.make_query() 
+                n_placeholders = QueryTermReplacer().counter(query)
+                output = f"\rYear ({self.year - self.start_year + 1}/{self.end_year - self.start_year + 1}): {self.year} | Municipality ({i+1}/{len(self.municipalities)}): {municipality}                         "
+                sys.stdout.write(output)
+                sys.stdout.flush()
+                self.cursor.execute(query, (municipality,) * n_placeholders)
+                self.conn.commit()
+
+    def make_query(self): 
+        return f''' 
+            DELETE FROM emissions_all_buurt_s3 WHERE municipality = %s and year = {self.year};
+            INSERT INTO emissions_all_buurt_s3 (
+                year, municipality, wk_code, bu_code, bu_geom,
+                embodied_kg_s0, embodied_kg_s1, embodied_kg_s2, embodied_kg_s3,
+                operational_kg_s0, operational_kg_s1, operational_kg_s2, operational_kg_s3,
+                construction, construction_s2, construction_s3, transformation, transformation_s2, transformation_s3,
+                renovation, renovation_s2, demolition, demolition_s2, inuse, inuse_s3,
+                tot_gas_m3, tot_gas_m3_s3, tot_elec_kwh, tot_elec_kwh_s3,
+                population, population_change, woz, n_homes
+            )
+
+            WITH emissions_all_buurt AS (
+                SELECT  
+                    CASE 
+                        WHEN construction = 0 AND transformation = 0 THEN 0 
+                        ELSE ROUND(construction / (construction + transformation), 3) 
+                    END AS construction_perc, 
+                    CASE 
+                        WHEN construction = 0 AND transformation = 0 THEN 0 
+                        ELSE ROUND(transformation / (construction + transformation), 3)
+                    END AS transformation_perc, 
+                    * 
+                FROM emissions_all_buurt_s2
+                WHERE municipality = %s AND year = {self.year}
+            ), 
+            emissions_all_buurt_nextyear AS (
+                SELECT * 
+                FROM emissions_all_buurt_s2
+                WHERE municipality = %s AND year = {self.year} + 1
+            ), 
+
+            -- population increase 
+            population_change AS (
+                SELECT b.population - a.population AS population_change,
+                    a.* 
+                FROM emissions_all_buurt a 
+                LEFT JOIN emissions_all_buurt_nextyear b 
+                ON a.bu_code = b.bu_code 
+            ), 
+
+
+            -- sqm of construction and transformation in scenario 3 
+            sqm AS (
+                SELECT 
+                    CASE
+                        WHEN construction = 0 THEN 0 
+                        WHEN population_change IS NULL THEN construction
+                        WHEN population_change <= 0 THEN construction 
+                        WHEN population_change > 0 AND (population_change * 250 * construction_perc) < construction 
+                            THEN ROUND(population_change * 250 * construction_perc)
+                        WHEN population_change > 0 AND (population_change * 250 * construction_perc) >= construction 
+                            THEN construction 
+                    END AS construction_s3, 
+                    CASE
+                        WHEN transformation = 0 THEN 0 
+                        WHEN population_change IS NULL THEN transformation
+                        WHEN population_change <= 0 THEN transformation 
+                        WHEN population_change > 0 AND (population_change * 250 * transformation_perc) < transformation 
+                            THEN ROUND(population_change * 250 * transformation_perc)
+                        WHEN population_change > 0 AND (population_change * 250 * transformation_perc) >= transformation 
+                            THEN transformation 
+                    END AS transformation_s3, 
+                    * 
+                FROM population_change
+            ), 
+
+            -- calculate embodied emissions
+            embodied_emissions AS (
+                SELECT 
+                    embodied_kg_s0, embodied_kg_s1, embodied_kg_s2,  
+                    operational_kg_s0, operational_kg_s1, operational_kg_s2, 
+                    construction_s3*316 + transformation_s3*126 + renovation*126 + demolition*77 AS embodied_kg_s3, 
+                    construction, construction_s2, construction_s3, 
+                    transformation, transformation_s2, transformation_s3, 
+                    renovation, renovation_s2, demolition, demolition_s2, 
+                    population, population_change, n_homes, 
+                    gas_m3_s0 AS tot_gas_m3, electricity_kwh_s0 AS tot_elec_kwh, 
+                    woz, year, municipality, wk_code, bu_code, bu_geom 
+                FROM sqm
+            ), 
+            emissions_all_buurt_lastyear AS (
+                SELECT * 
+                FROM emissions_all_buurt_s3
+                WHERE municipality = %s AND year = {self.year} - 1
+            ), 
+            inuse_lastyear_s3 AS (
+                SELECT bu_code, SUM(inuse) AS inuse 
+                FROM emissions_all_buurt_lastyear
+                GROUP BY bu_code
+            ), 
+            embodied_emissions_with_inuse_lastyear AS (
+                SELECT b.inuse AS inuse_lastyear, a.*
+                FROM embodied_emissions a 
+                LEFT JOIN inuse_lastyear_s3 b 
+                ON a.bu_code = b.bu_code
+            ), 
+            building_activity_lastyear_s3 AS (
+                SELECT year, bu_code, construction_s3, transformation_s3
+                FROM emissions_all_buurt_lastyear
+            ), 
+            embodied_emissions_with_values_lastyear AS (
+                SELECT 
+                    b.construction_s3 AS construction_lastyear, 
+                    b.transformation_s3 AS transformation_lastyear, 
+                    a.*
+                FROM embodied_emissions_with_inuse_lastyear a 
+                LEFT JOIN building_activity_lastyear_s3 b 
+                ON a.bu_code = b.bu_code
+            ), 
+            inuse_s0 AS (
+                SELECT bu_code, SUM(sqm) AS inuse
+                FROM housing_inuse_2012_2021
+                WHERE municipality = %s AND year = {self.year}
+                GROUP BY bu_code
+            ), 
+            embodied_emissions_with_inuse_s0 AS (
+                SELECT
+                    b.inuse AS inuse_s0, a.*
+                FROM embodied_emissions_with_values_lastyear a 
+                LEFT JOIN inuse_s0 b 
+                ON a.bu_code = b.bu_code
+            ), 
+
+            -- calculate in-use sqm for scenario 3 
+            s3_inuse AS (
+                SELECT 
+                    CASE 
+                        WHEN year = 2012 THEN inuse_s0
+                        -- WHEN construction = construction_s3 AND transformation = transformation_s3 THEN inuse_s0
+                        ELSE inuse_lastyear + construction_lastyear + transformation_lastyear
+                    END AS inuse_s3,
+                    * 
+                FROM embodied_emissions_with_inuse_s0
+            ), 
+            s3_inuse_adjusted AS (
+                SELECT 
+                    CASE 
+                        WHEN inuse_s3 > inuse_s0 THEN inuse_s0
+                        ELSE inuse_s3
+                    END AS inuse_s3_adjusted, 
+                *
+                FROM s3_inuse
+            ), 
+
+            -- calculate energy usage (gas and electricity) for s3 
+            s3_energy AS (
+                SELECT 
+                    ROUND(tot_gas_m3 / inuse_s0 * inuse_s3_adjusted) AS tot_gas_m3_s3, 
+                    ROUND(tot_elec_kwh / inuse_s0 * inuse_s3_adjusted) AS tot_elec_kwh_s3, 
+                    * 
+                FROM s3_inuse_adjusted
+            ), 
+            -- calculate operational emissions for s3 
+            s3_operational_emissions AS (
+                SELECT 
+                    ROUND(tot_gas_m3_s3 * 1.9 + tot_elec_kwh_s3 * 0.45) AS operational_kg_s3, 
+                    * 
+                FROM s3_energy
+            ), 
+            final_table AS (
+                SELECT 
+                    year, municipality, wk_code, bu_code, bu_geom, 
+                    embodied_kg_s0, embodied_kg_s1, embodied_kg_s2, embodied_kg_s3, 
+                    ROUND(operational_kg_s0) AS operational_kg_s0, 
+                    operational_kg_s1, operational_kg_s2, operational_kg_s3, 
+                    construction, construction_s2, construction_s3, transformation, transformation_s2, transformation_s3, 
+                    renovation, renovation_s2, demolition, demolition_s2, inuse_s0, inuse_s3_adjusted, 
+                    tot_gas_m3, tot_gas_m3_s3, tot_elec_kwh, tot_elec_kwh_s3, 
+                    population, population_change, woz, n_homes 
+                FROM s3_operational_emissions
+            )
+
+            SELECT * FROM final_table 
+            ''' 

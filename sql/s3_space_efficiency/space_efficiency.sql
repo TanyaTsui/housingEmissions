@@ -1,15 +1,15 @@
 DELETE FROM emissions_all_buurt_s3 WHERE municipality = 'Delft';
 INSERT INTO emissions_all_buurt_s3 (
-    year, municipality, wk_code, bu_code, bu_geom,
+	year, municipality, wk_code, bu_code, bu_geom,
     embodied_kg_s0, embodied_kg_s1, embodied_kg_s2, embodied_kg_s3,
     operational_kg_s0, operational_kg_s1, operational_kg_s2, operational_kg_s3,
-    construction, construction_s3, transformation, transformation_s3,
-    renovation, demolition, inuse, inuse_s3,
+    construction, construction_s2, construction_s3, transformation, transformation_s2, transformation_s3,
+    renovation, renovation_s2, demolition, demolition_s2, inuse, inuse_s3,
     tot_gas_m3, tot_gas_m3_s3, tot_elec_kwh, tot_elec_kwh_s3,
     population, population_change, woz, n_homes
 )
 
-WITH emissions_all_buurt_without_population AS (
+WITH emissions_all_buurt AS (
 	SELECT  
 		CASE 
 			WHEN construction = 0 AND transformation = 0 THEN 0 
@@ -22,14 +22,7 @@ WITH emissions_all_buurt_without_population AS (
 		* 
 	FROM emissions_all_buurt_s2
 	WHERE municipality = 'Delft'
-), 
-emissions_all_buurt AS (
-	SELECT a.*, 
-		b.population, b.n_homes, b.tot_gas_m3, b.tot_elec_kwh, b.woz
-	FROM emissions_all_buurt_without_population a 
-	LEFT JOIN (SELECT * FROM emissions_all_buurt WHERE municipality = 'Delft') b 
-	ON a.year = b.year AND a.bu_code = b.bu_code 
-), 
+),  
 
 -- population increase 
 population_change AS (
@@ -72,9 +65,12 @@ embodied_emissions AS (
 		embodied_kg_s0, embodied_kg_s1, embodied_kg_s2,  
 		operational_kg_s0, operational_kg_s1, operational_kg_s2, 
 		construction_s3*316 + transformation_s3*126 + renovation*126 + demolition*77 AS embodied_kg_s3, 
-		construction, construction_s3, transformation, transformation_s3, renovation, demolition, 
-		population, population_change, n_homes, tot_gas_m3, tot_elec_kwh, woz, 
-		year, municipality, wk_code, bu_code, bu_geom 
+		construction, construction_s2, construction_s3, 
+		transformation, transformation_s2, transformation_s3, 
+		renovation, renovation_s2, demolition, demolition_s2, 
+		population, population_change, n_homes, 
+		gas_m3_s0 AS tot_gas_m3, electricity_kwh_s0 AS tot_elec_kwh, 
+		woz, year, municipality, wk_code, bu_code, bu_geom 
 	FROM sqm
 ), 
 
@@ -116,20 +112,19 @@ s3_inuse_adjusted AS (
 		CASE 
 			WHEN inuse_s3 > inuse THEN inuse 
 			ELSE inuse_s3
-		END AS inuse_s3, 
+		END AS inuse_s3_adjusted, 
 	*
-	FROM s3_inuse_adjusted
-)
+	FROM s3_inuse
+), 
 
 -- calculate energy usage (gas and electricity) for s3 
 s3_energy AS (
 	SELECT 
-		ROUND(tot_gas_m3 / inuse * inuse_s3) AS tot_gas_m3_s3, 
-		ROUND(tot_elec_kwh / inuse * inuse_s3) AS tot_elec_kwh_s3, 
+		ROUND(tot_gas_m3 / inuse * inuse_s3_adjusted) AS tot_gas_m3_s3, 
+		ROUND(tot_elec_kwh / inuse * inuse_s3_adjusted) AS tot_elec_kwh_s3, 
 		* 
 	FROM s3_inuse_adjusted
 ), 
-
 -- calculate operational emissions for s3 
 s3_operational_emissions AS (
 	SELECT 
@@ -143,13 +138,15 @@ final_table AS (
 		embodied_kg_s0, embodied_kg_s1, embodied_kg_s2, embodied_kg_s3, 
 		ROUND(operational_kg_s0) AS operational_kg_s0, 
 		operational_kg_s1, operational_kg_s2, operational_kg_s3, 
-		construction, construction_s3, transformation, transformation_s3, 
-		renovation, demolition, inuse, inuse_s3, 
+		construction, construction_s2, construction_s3, transformation, transformation_s2, transformation_s3, 
+		renovation, renovation_s2, demolition, demolition_s2, inuse, inuse_s3, 
 		tot_gas_m3, tot_gas_m3_s3, tot_elec_kwh, tot_elec_kwh_s3, 
 		population, population_change, woz, n_homes 
 	FROM s3_operational_emissions
 )
 
+
 SELECT * FROM final_table 
+-- WHERE bu_code = 'BU05031101'
 
 
